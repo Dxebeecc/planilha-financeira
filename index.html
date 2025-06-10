@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tags PWA -->
+    <meta name="theme-color" content="#1f2937"/>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <title>Planilha Financeira</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .card {
+            background-color: #1f2937; /* bg-gray-800 */
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem; 
+            margin-bottom: 1.5rem; 
+        }
+        .input-field {
+            background-color: #374151; /* bg-gray-700 */
+            color: #e5e7eb; /* text-gray-200 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+            border-radius: 0.375rem; 
+            padding: 0.5rem 0.75rem; 
+            width: 100%;
+            transition: all 0.15s ease-in-out;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6; /* border-blue-500 */
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.35);
+        }
+        .input-field.unpaid-value { /* Estilo para valor não pago */
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .input-field[readonly] {
+            background-color: #4b5563; /* bg-gray-600 */
+            cursor: not-allowed;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+            cursor: pointer;
+            font-size: 0.875rem; 
+        }
+        .btn-sm { 
+             padding: 0.25rem 0.75rem; 
+             font-size: 0.75rem; 
+        }
+        .btn-primary { 
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        .btn-primary:hover { 
+            background-color: #2563eb; /* blue-600 */
+        }
+        .btn-secondary { 
+            background-color: #4b5563; /* gray-600 */
+            color: #d1d5db; /* gray-300 */
+        }
+        .month-tab:not(.active-month-tab):hover {
+             background-color: #60a5fa; /* blue-400 */
+        }
+        .month-tab.active-month-tab { 
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        .month-tab.active-month-tab:hover {
+             background-color: #1d4ed8; /* blue-700 */
+        }
+
+        .btn-danger {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+         .btn-success { 
+            background-color: #22c55e; /* green-500 */
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #16a34a; /* green-600 */
+        }
+        .btn-save { 
+            background-color: #059669; /* emerald-600 */
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: #047857; /* emerald-700 */
+        }
+        .btn-edit-names { 
+            background-color: #374151; /* gray-700 */
+            color: white;
+            padding: 0.25rem 0.75rem; 
+            font-size: 0.875rem; 
+        }
+        .btn-edit-names:hover { 
+            background-color: #3b82f6; /* blue-500 */
+        }
+        /* Estilos para o Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563; /* Cor 'desligado' (Não Pago) - Cinza */
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #22c55e; /* Cor 'ligado' (Pago) - Verde */
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151; /* border-gray-700 */
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-item strong {
+            font-weight: 600;
+        }
+        .planilha-mes-container {
+            transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out;
+            opacity: 1;
+            max-height: 20000px; 
+            overflow: hidden;
+        }
+        .planilha-mes-container.hidden-month {
+            opacity: 0;
+            max-height: 0;
+        }
+        .text-title { 
+            color: #e5e7eb; /* text-gray-200 */
+        }
+        .text-label {
+            font-size: 0.75rem; /* text-xs */
+            color: #9ca3af; /* text-gray-400 */
+            margin-bottom: 0.25rem;
+        }
+        .text-total-income { color: #4ade80; /* green-400 */ }
+        .text-total-expenses { color: #f87171; /* red-400 */ }
+        .text-variable-expenses { color: #facc15; /* yellow-400 */ }
+        .text-balance { color: #60a5fa; /* blue-400 */ }
+        .text-balance-negative { color: #f87171; /* red-400 */ }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-4 text-center"> 
+            <h1 class="text-3xl md:text-4xl font-bold text-title">Planilha Financeira Trimestral</h1>
+        </header>
+        <div class="mb-8 text-center space-x-2"> 
+            <button onclick="configurarNomesMeses()" class="btn btn-edit-names">Editar Nomes dos Meses</button>
+            <button onclick="saveDataToLocalStorage()" class="btn btn-save">Salvar Dados</button>
+        </div>
+
+        <div class="mb-6 flex flex-wrap justify-center space-x-2 border-b border-gray-700 pb-4" id="month-tabs-container">
+            <!-- Botões dos meses serão gerados aqui -->
+        </div>
+
+        <div id="planilhas-container">
+            <!-- Conteúdo das planilhas dos meses será inserido aqui -->
+        </div>
+        
+        <div class="card text-center mt-8">
+            <h2 class="text-xl font-semibold mb-4 text-title">Exportar Dados do Mês Selecionado</h2>
+            <button onclick="exportDataToCSV()" class="btn btn-success">Baixar como CSV (para Excel)</button>
+        </div>
+    </div>
+
+    <script>
+        let activeInternalMonthKey = 'month1'; 
+        let monthLabels = ['Mês 1', 'Mês 2', 'Mês 3']; // Nomes genéricos por padrão
+        const internalMonthKeys = ['month1', 'month2', 'month3']; 
+        const HORA_EXTRA_RATE = 21;
+
+        let financialData = {};
+
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem('financialDataApp_v1', JSON.stringify(financialData));
+                localStorage.setItem('monthLabelsApp_v1', JSON.stringify(monthLabels));
+                alert('Dados salvos com sucesso no seu navegador!');
+            } catch (e) {
+                console.error('Erro ao salvar dados:', e);
+                alert('Erro ao salvar dados. Verifique se o armazenamento local está habilitado e não está cheio.');
+            }
+        }
+
+        function loadDataFromLocalStorage() {
+            try {
+                const savedFinancialData = localStorage.getItem('financialDataApp_v1');
+                const savedMonthLabels = localStorage.getItem('monthLabelsApp_v1');
+
+                if (savedFinancialData && savedMonthLabels) {
+                    financialData = JSON.parse(savedFinancialData);
+                    monthLabels = JSON.parse(savedMonthLabels);
+                    if (!financialData.month1 || !financialData.month2 || !financialData.month3) {
+                        throw new Error("Estrutura de dados salva inválida.");
+                    }
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('Erro ao carregar dados do localStorage:', e);
+                localStorage.removeItem('financialDataApp_v1');
+                localStorage.removeItem('monthLabelsApp_v1');
+                return false;
+            }
+        }
+
+        function initFinancialData() {
+            // Valores zerados para uma planilha limpa
+            const baseIncomeMonth1Spec = [ 
+                { name: 'Pagamento', value: 0 },
+                { name: 'Vale', value: 0 },
+                { name: 'Hora Extra', isCalculated: true, hours: 0, rate: HORA_EXTRA_RATE }
+            ];
+            const baseFixedExpensesMonth1Spec = [ 
+                { name: 'Carro (mensalidade)', value: 0, isPaid: true },
+                { name: 'Carro (IPVA)', value: 0, isPaid: true },
+                { name: 'Combustível', value: 0, isPaid: true },
+                { name: 'Internet', value: 0, isPaid: true }
+            ];
+            const baseVariableExpensesNamesMonth1 = [ 
+                'Cartão de crédito', 'Gastos pessoais' 
+            ];
+            
+            financialData.month1 = {
+                incomeEntries: baseIncomeMonth1Spec.map((spec, index) => ({ id: Date.now() + 100 + index, ...spec })),
+                fixedExpensesEntries: baseFixedExpensesMonth1Spec.map((spec, index) => ({ id: Date.now() + 4000 + index, ...spec })),
+                variableExpensesEntries: baseVariableExpensesNamesMonth1.map((name, index) => ({ id: Date.now() + 80000 + index, name, value: 0 }))
+            };
+            
+            const updatedBaseIncomeValues = {};
+            financialData.month1.incomeEntries.forEach(e => { if(e.name === 'Pagamento' || e.name === 'Vale') updatedBaseIncomeValues[e.name] = e.value; });
+            const updatedBaseFixedExpenses = JSON.parse(JSON.stringify(financialData.month1.fixedExpensesEntries));
+
+            [internalMonthKeys[1], internalMonthKeys[2]].forEach((monthKey, monthIndexOffset) => {
+                financialData[monthKey] = {
+                    incomeEntries: [
+                        { id: `saldoAnterior-${monthKey}`, name: 'Saldo Mês Anterior', value: 0, isSystemEntry: true },
+                        ...baseIncomeMonth1Spec.map((spec, idx) => {
+                            if (spec.isCalculated) {
+                                return { id: Date.now() + (320000 * (monthIndexOffset + 2)) + idx, ...spec, hours: 0 };
+                            }
+                            return { id: Date.now() + (120000 * (monthIndexOffset + 2)) + idx, name: spec.name, value: (updatedBaseIncomeValues[spec.name] ?? spec.value) };
+                        })
+                    ],
+                    fixedExpensesEntries: updatedBaseFixedExpenses.map((entry, idx) => ({
+                        ...entry, id: Date.now() + (150000 * (monthIndexOffset + 2)) + idx 
+                    })),
+                    variableExpensesEntries: baseVariableExpensesNamesMonth1.map((name, index) => ({ 
+                        id: Date.now() + (190000 * (monthIndexOffset + 2)) + index, name, value: 0 
+                    }))
+                };
+            });
+        }
+        
+        function generateMonthHTML(internalKey, displayLabel) {
+            return `
+                <div id="planilha-${internalKey}-container" class="planilha-mes-container ${internalKey === activeInternalMonthKey ? '' : 'hidden-month'}">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="card col-span-1 md:col-span-1">
+                            <h2 class="text-xl font-semibold mb-4 text-title">Entradas (R$) - ${displayLabel}</h2>
+                            <div class="income-list"></div>
+                            <div class="mt-4 flex justify-start"> <button onclick="addIncomeEntry()" class="btn btn-primary btn-sm">Adicionar Entrada</button> </div>
+                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Entradas: <span class="total-income text-total-income">R$ 0.00</span></p> </div>
+                        </div>
+                        <div class="card col-span-1 md:col-span-2">
+                            <h2 class="text-xl font-semibold mb-4 text-title">Resumo Financeiro - ${displayLabel}</h2>
+                            <div class="space-y-3">
+                                <div class="summary-item"><span class="text-title">Total Entradas:</span><strong class="summary-total-income text-total-income">R$ 0.00</strong></div>
+                                <div class="summary-item"><span class="text-title">Total Dívidas Fixas (Pagas):</span><strong class="summary-total-fixed-expenses text-total-expenses">R$ 0.00</strong></div>
+                                <div class="summary-item"><span class="text-title">Total Dívidas Variáveis:</span><strong class="summary-total-variable-expenses text-variable-expenses">R$ 0.00</strong></div>
+                                <div class="summary-item"><span class="text-title">Total Geral de Despesas:</span><strong class="summary-total-expenses text-total-expenses">R$ 0.00</strong></div>
+                                <div class="summary-item text-xl"><span class="text-title">Saldo Restante:</span><strong class="summary-balance text-balance">R$ 0.00</strong></div>
+                            </div>
+                            <div class="mt-6">
+                                <h3 class="text-lg font-semibold mb-2 text-title">Controle Percentual (sobre Entradas) - ${displayLabel}</h3>
+                                <div class="space-y-2">
+                                    <div class="summary-item"><span class="text-title">Dívidas Fixas (Pagas):</span><strong class="percentage-fixed">0.00%</strong></div>
+                                    <div class="summary-item"><span class="text-title">Dívidas Variáveis:</span><strong class="percentage-variable">0.00%</strong></div>
+                                    <div class="summary-item"><span class="text-title">Total Despesas:</span><strong class="percentage-total-expenses">0.00%</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="card">
+                            <h2 class="text-xl font-semibold mb-4 text-title">Dívidas Fixas (R$) - ${displayLabel}</h2>
+                            <div class="fixed-expenses-list"></div>
+                            <div class="mt-4 flex justify-start"> <button onclick="addFixedExpenseEntry()" class="btn btn-primary btn-sm">Adicionar Dívida Fixa</button> </div>
+                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Dívidas Fixas (Pagas): <span class="total-fixed-expenses text-total-expenses">R$ 0.00</span></p> </div>
+                        </div>
+                        <div class="card">
+                            <h2 class="text-xl font-semibold mb-4 text-title">Dívidas Variáveis (R$) - ${displayLabel}</h2>
+                            <div class="variable-expenses-list"></div>
+                            <div class="mt-4 flex justify-start"> <button onclick="addVariableExpenseEntry()" class="btn btn-primary btn-sm">Adicionar Dívida Variável</button> </div>
+                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Dívidas Variáveis: <span class="total-variable-expenses text-variable-expenses">R$ 0.00</span></p> </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        const keyMap = { 'income': 'incomeEntries', 'fixed-expenses': 'fixedExpensesEntries', 'variable-expenses': 'variableExpensesEntries' };
+        function getTargetArray(listTypeClass) { return financialData[activeInternalMonthKey]?.[keyMap[listTypeClass]]; }
+
+        function renderMonthTabs() {
+            const tabsContainer = document.getElementById('month-tabs-container');
+            tabsContainer.innerHTML = '';
+            internalMonthKeys.forEach((internalKey, index) => {
+                const button = document.createElement('button');
+                button.textContent = monthLabels[index];
+                button.id = `btn-${internalKey}`;
+                button.classList.add('month-tab', 'btn');
+                button.classList.toggle('active-month-tab', internalKey === activeInternalMonthKey);
+                button.classList.toggle('btn-secondary', internalKey !== activeInternalMonthKey);
+                button.onclick = () => selecionarMes(internalKey);
+                tabsContainer.appendChild(button);
+            });
+        }
+        function renderMonthPlanilhas() {
+            document.getElementById('planilhas-container').innerHTML = internalMonthKeys.map((key, index) => generateMonthHTML(key, monthLabels[index])).join('');
+        }
+        function configurarNomesMeses() {
+            const novosNomes = monthLabels.map((currentName, i) => {
+                const nome = prompt(`Digite o nome para o Mês ${i + 1}:`, currentName);
+                return nome?.trim() || currentName;
+            });
+            if (JSON.stringify(novosNomes) !== JSON.stringify(monthLabels)) {
+                monthLabels = novosNomes;
+                renderMonthTabs();
+                renderMonthPlanilhas(); 
+                propagateAllBalances(); 
+                selecionarMes(activeInternalMonthKey, false);
+            }
+        }
+        function formatCurrency(value) { return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+        function getActiveMonthContainer() { return document.getElementById(`planilha-${activeInternalMonthKey}-container`); }
+
+        function renderList(listTypeClass, entries) {
+            const listElement = getActiveMonthContainer()?.querySelector(`.${listTypeClass}-list`);
+            if (!listElement) return;
+
+            listElement.innerHTML = entries.map((entry) => {
+                let html;
+                if (entry.isSystemEntry) {
+                    html = `<div class="flex items-center justify-between mb-1"> <input type="text" value="${entry.name}" class="input-field text-sm font-medium w-2/3 mr-2" readonly> <div class="w-20 h-6"></div> </div> <input type="number" value="${entry.value}" class="input-field text-sm w-full" readonly>`;
+                } else if (entry.isCalculated) {
+                    const calculatedValue = (entry.hours || 0) * (entry.rate || 0);
+                    html = `<div class="flex items-center justify-between mb-1"> <input type="text" value="${entry.name}" class="input-field text-sm font-medium w-2/3 mr-2" readonly> <div class="w-20 h-6"></div> </div> <div class="flex space-x-2"> <div class="w-1/2"> <div class="text-label">Qtd. Horas</div> <input type="number" value="${entry.hours || 0}" class="input-field text-sm w-full" onchange="updateCalculatedEntry('${listTypeClass}', '${entry.id}', this.value)" step="1"> </div> <div class="w-1/2"> <div class="text-label">Valor Total (R$)</div> <input type="number" value="${calculatedValue.toFixed(2)}" class="input-field text-sm w-full" readonly> </div> </div>`;
+                } else if (listTypeClass === 'fixed-expenses') {
+                    const isChecked = entry.isPaid ? 'checked' : '';
+                    html = `<div class="flex items-center justify-between mb-1"> <input type="text" value="${entry.name}" class="input-field text-sm font-medium flex-grow mr-2" onchange="updateEntryName('${listTypeClass}', '${entry.id}', this.value)"> <button onclick="removeEntry('${listTypeClass}', '${entry.id}')" class="btn btn-danger btn-sm">Remover</button> </div> <div class="flex items-center space-x-2 mt-2"> <input type="number" value="${entry.value}" class="input-field text-sm w-full ${!entry.isPaid ? 'unpaid-value' : ''}" onchange="updateEntryValue('${listTypeClass}', '${entry.id}', this.value)" step="0.01"> <label class="toggle-switch"> <input type="checkbox" ${isChecked} onchange="togglePaidStatus('${entry.id}')"> <span class="slider"></span> </label> </div>`;
+                } else {
+                    html = `<div class="flex items-center justify-between mb-1"> <input type="text" value="${entry.name}" class="input-field text-sm font-medium w-2/3 mr-2" onchange="updateEntryName('${listTypeClass}', '${entry.id}', this.value)"> <button onclick="removeEntry('${listTypeClass}', '${entry.id}')" class="btn btn-danger btn-sm">Remover</button> </div> <input type="number" value="${entry.value}" class="input-field text-sm w-full" onchange="updateEntryValue('${listTypeClass}', '${entry.id}', parseFloat(this.value) || 0)" step="0.01">`;
+                }
+                return `<div class="mb-3 p-3 border border-gray-700 rounded-lg" data-id="${entry.id}">${html}</div>`;
+            }).join('');
+        }
+
+        function togglePaidStatus(id) {
+            const entry = getTargetArray('fixed-expenses')?.find(e => e.id.toString() === id.toString());
+            if (entry) {
+                entry.isPaid = !entry.isPaid;
+                renderAll();
+                propagateAllBalances();
+            }
+        }
+        function renderIncomeEntries() { renderList('income', getTargetArray('income')); }
+        function renderFixedExpensesEntries() { renderList('fixed-expenses', getTargetArray('fixed-expenses')); }
+        function renderVariableExpensesEntries() { renderList('variable-expenses', getTargetArray('variable-expenses')); }
+        
+        function addEntry(listTypeClass) {
+            const targetArray = getTargetArray(listTypeClass);
+            if (!targetArray) return;
+            const defaultName = listTypeClass === 'income' ? 'Nova Entrada' : (listTypeClass === 'fixed-expenses' ? 'Nova Dívida Fixa' : 'Nova Dívida Variável');
+            const entryData = { id: Date.now() + Math.random(), name: defaultName, value: 0 };
+            if (listTypeClass === 'fixed-expenses') entryData.isPaid = true;
+            targetArray.push(entryData);
+            renderAll();
+            propagateAllBalances();
+        }
+        function addIncomeEntry() { addEntry('income'); }
+        function addFixedExpenseEntry() { addEntry('fixed-expenses'); }
+        function addVariableExpenseEntry() { addEntry('variable-expenses'); }
+        
+        function updateEntry(listTypeClass, id, key, newValue) {
+            const targetArray = getTargetArray(listTypeClass);
+            const entry = targetArray?.find(e => e.id.toString() === id.toString());
+            if (entry && !entry.isSystemEntry) {
+                 entry[key] = newValue;
+                 renderAll();
+                 propagateAllBalances();
+            }
+        }
+        function updateEntryName(listTypeClass, id, newName) { updateEntry(listTypeClass, id, 'name', newName); }
+        function updateEntryValue(listTypeClass, id, newValue) { updateEntry(listTypeClass, id, 'value', parseFloat(newValue) || 0); }
+        function updateCalculatedEntry(listTypeClass, id, newHours) { updateEntry(listTypeClass, id, 'hours', parseFloat(newHours) || 0); }
+        
+        function removeEntry(listTypeClass, id) {
+            const targetKey = keyMap[listTypeClass];
+            if (!targetKey) return;
+            const targetArray = financialData[activeInternalMonthKey][targetKey];
+            financialData[activeInternalMonthKey][targetKey] = targetArray.filter(e => e.id.toString() !== id.toString());
+            renderAll();
+            propagateAllBalances();
+        }
+        
+        function calculateMonthBalance(internalKey) {
+            const monthData = financialData[internalKey];
+            if (!monthData) return 0;
+            const totalIncome = monthData.incomeEntries.reduce((s, e) => s + (e.isCalculated ? (e.hours * e.rate) : (e.value || 0)), 0);
+            const totalFixed = monthData.fixedExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
+            const totalVariable = monthData.variableExpensesEntries.reduce((s, e) => s + (e.value || 0), 0);
+            return totalIncome - (totalFixed + totalVariable);
+        }
+        function propagateAllBalances() {
+            for (let i = 1; i < internalMonthKeys.length; i++) {
+                const prevBalance = calculateMonthBalance(internalMonthKeys[i-1]);
+                const saldoEntry = financialData[internalMonthKeys[i]].incomeEntries.find(e => e.isSystemEntry);
+                if (saldoEntry) saldoEntry.value = prevBalance;
+            }
+            if (getActiveMonthContainer()) {
+                calculateAndDisplayTotalsForActiveMonth();
+                renderIncomeEntries();
+            }
+        }
+        function calculateAndDisplayTotalsForActiveMonth() {
+            const container = getActiveMonthContainer();
+            if (!container) return;
+            const data = financialData[activeInternalMonthKey];
+            if (!data) return;
+
+            const totalIncome = data.incomeEntries.reduce((s, e) => s + (e.isCalculated ? (e.hours * e.rate) : (e.value || 0)), 0);
+            const totalFixed = data.fixedExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
+            const totalVariable = data.variableExpensesEntries.reduce((s, e) => s + (e.value || 0), 0);
+            const totalExpenses = totalFixed + totalVariable;
+            const balance = totalIncome - totalExpenses;
+
+            container.querySelectorAll('.total-income, .summary-total-income').forEach(el => el.textContent = formatCurrency(totalIncome));
+            container.querySelectorAll('.total-fixed-expenses, .summary-total-fixed-expenses').forEach(el => el.textContent = formatCurrency(totalFixed));
+            container.querySelectorAll('.total-variable-expenses, .summary-total-variable-expenses').forEach(el => el.textContent = formatCurrency(totalVariable));
+            container.querySelectorAll('.summary-total-expenses').forEach(el => el.textContent = formatCurrency(totalExpenses));
+            
+            const balanceEl = container.querySelector('.summary-balance');
+            balanceEl.textContent = formatCurrency(balance);
+            balanceEl.classList.toggle('text-balance', balance >= 0);
+            balanceEl.classList.toggle('text-balance-negative', balance < 0);
+            
+            container.querySelector('.percentage-fixed').textContent = (totalIncome > 0 ? (totalFixed / totalIncome) * 100 : 0).toFixed(2) + '%';
+            container.querySelector('.percentage-variable').textContent = (totalIncome > 0 ? (totalVariable / totalIncome) * 100 : 0).toFixed(2) + '%';
+            container.querySelector('.percentage-total-expenses').textContent = (totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0).toFixed(2) + '%';
+        }
+        
+        function exportDataToCSV() {
+            const monthLabel = monthLabels[internalMonthKeys.indexOf(activeInternalMonthKey)];
+            const data = financialData[activeInternalMonthKey];
+            let csv = `Mês: ${monthLabel}\r\nTipo,Descrição,Valor,Status\r\n`;
+
+            data.incomeEntries.forEach(e => {
+                csv += `Entrada,"${e.name.replace(/"/g, '""')}",${e.isCalculated ? (e.hours*e.rate) : e.value},N/A\r\n`;
+            });
+            data.fixedExpensesEntries.forEach(e => {
+                csv += `Dívida Fixa,"${e.name.replace(/"/g, '""')}",${e.value},${e.isPaid ? 'Paga' : 'Não Paga'}\r\n`;
+            });
+            data.variableExpensesEntries.forEach(e => {
+                csv += `Dívida Variável,"${e.name.replace(/"/g, '""')}",${e.value},N/A\r\n`;
+            });
+            
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `planilha_financeira_${monthLabel.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderAll() {
+            renderIncomeEntries();
+            renderFixedExpensesEntries();
+            renderVariableExpensesEntries();
+            calculateAndDisplayTotalsForActiveMonth(); 
+        }
+        function selecionarMes(key, skipRender = false) {
+            activeInternalMonthKey = key;
+            document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.add('hidden-month'));
+            document.getElementById(`planilha-${key}-container`)?.classList.remove('hidden-month');
+            
+            document.querySelectorAll('.month-tab').forEach(b => b.classList.remove('active-month-tab'));
+            document.getElementById(`btn-${key}`)?.classList.add('active-mo
