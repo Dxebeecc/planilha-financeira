@@ -538,4 +538,20 @@
             document.getElementById(`planilha-${key}-container`)?.classList.remove('hidden-month');
             
             document.querySelectorAll('.month-tab').forEach(b => b.classList.remove('active-month-tab'));
-            document.getElementById(`btn-${key}`)?.classList.add('active-mo
+            document.getElementById(`btn-${key}`)?.classList.add('active-month-tab');
+            if(!skipRender) renderAll();
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!loadDataFromLocalStorage()) {
+                initFinancialData(); 
+            }
+            renderMonthTabs(); 
+            renderMonthPlanilhas(); 
+            propagateAllBalances(); 
+            selecionarMes(activeInternalMonthKey || internalMonthKeys[0]); 
+        });
+
+    </script>
+</body>
+</html>
