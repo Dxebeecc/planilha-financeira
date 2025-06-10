@@ -167,23 +167,6 @@
             opacity: 0;
             max-height: 0;
         }
-        #save-status {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #059669; /* emerald-600 */
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            pointer-events: none;
-        }
-        #save-status.show {
-            opacity: 1;
-        }
         .text-title { 
             color: #e5e7eb; 
         }
@@ -206,7 +189,6 @@
         </header>
         <div class="mb-8 text-center space-x-2"> 
             <button onclick="configurarNomesMeses()" class="btn btn-edit-names">Editar Nomes dos Meses</button>
-            <!-- Botão Salvar foi removido -->
         </div>
 
         <div class="mb-6 flex flex-wrap justify-center space-x-2 border-b border-gray-700 pb-4" id="month-tabs-container">
@@ -222,8 +204,6 @@
             <button onclick="exportDataToCSV()" class="btn btn-success">Baixar como CSV (para Excel)</button>
         </div>
         
-        <!-- Elemento para notificação de salvamento -->
-        <div id="save-status"></div>
     </div>
 
     <script>
@@ -231,24 +211,13 @@
         let monthLabels = ['Mês 1', 'Mês 2', 'Mês 3']; 
         const internalMonthKeys = ['month1', 'month2', 'month3']; 
         const HORA_EXTRA_RATE = 21;
-        let saveTimeout;
 
         let financialData = {};
 
         function saveDataToLocalStorage() {
             try {
-                localStorage.setItem('financialDataApp_autoSave_v1', JSON.stringify(financialData));
-                localStorage.setItem('monthLabelsApp_autoSave_v1', JSON.stringify(monthLabels));
-                
-                const saveStatus = document.getElementById('save-status');
-                if (saveStatus) {
-                    saveStatus.textContent = 'Salvo Automaticamente!';
-                    saveStatus.classList.add('show');
-                    clearTimeout(saveTimeout); // Limpa timeout anterior se houver
-                    saveTimeout = setTimeout(() => {
-                        saveStatus.classList.remove('show');
-                    }, 2000); // Mensagem desaparece após 2 segundos
-                }
+                localStorage.setItem('financialDataApp_autoSave_v2', JSON.stringify(financialData));
+                localStorage.setItem('monthLabelsApp_autoSave_v2', JSON.stringify(monthLabels));
             } catch (e) {
                 console.error('Erro ao salvar dados:', e);
             }
@@ -256,8 +225,8 @@
 
         function loadDataFromLocalStorage() {
             try {
-                const savedFinancialData = localStorage.getItem('financialDataApp_autoSave_v1');
-                const savedMonthLabels = localStorage.getItem('monthLabelsApp_autoSave_v1');
+                const savedFinancialData = localStorage.getItem('financialDataApp_autoSave_v2');
+                const savedMonthLabels = localStorage.getItem('monthLabelsApp_autoSave_v2');
 
                 if (savedFinancialData && savedMonthLabels) {
                     financialData = JSON.parse(savedFinancialData);
@@ -270,8 +239,8 @@
                 return false;
             } catch (e) {
                 console.error('Erro ao carregar dados do localStorage:', e);
-                localStorage.removeItem('financialDataApp_autoSave_v1');
-                localStorage.removeItem('monthLabelsApp_autoSave_v1');
+                localStorage.removeItem('financialDataApp_autoSave_v2');
+                localStorage.removeItem('monthLabelsApp_autoSave_v2');
                 return false;
             }
         }
@@ -401,7 +370,7 @@
                 renderMonthPlanilhas(); 
                 propagateAllBalances(); 
                 selecionarMes(activeInternalMonthKey, false);
-                saveDataToLocalStorage(); // Salva os novos nomes
+                saveDataToLocalStorage(); 
             }
         }
         function formatCurrency(value) { return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
@@ -589,3 +558,16 @@
     </script>
 </body>
 </html>
+```
+
+### Sobre o Ícone da Aplicação
+
+Em relação à sua outra pergunta sobre o ícone, é importante esclarecer um ponto:
+
+* **Ícones de Apps (192x192, 512x512):** Estes são os ícones que aparecem no seu ecrã principal. Eles **precisam de ser quadrados**. Os sistemas Android e iOS pegam nestes ícones quadrados e aplicam uma máscara para lhes dar a forma que vê no seu telemóvel (círculo, quadrado com cantos arredondados, etc.). Se usar uma imagem retangular como 1080x1920, ela será esmagada ou cortada e não ficará bem.
+
+* **Tela de Abertura (Splash Screen):** O que você descreve (uma imagem que toma toda a tela ao abrir) é uma "splash screen". A tecnologia PWA gera automaticamente uma splash screen muito simples usando a `background_color` que definimos no `manifest.json` e o seu ícone de 512x512 no centro. Configurar uma imagem de splash screen personalizada (como uma de 1080x1920) é um processo mais complexo e não é suportado de forma consistente em todos os telemóveis e navegadores, especialmente no iOS.
+
+**Recomendação:** Mantenha os ícones como ficheiros quadrados (`icon-192.png` e `icon-512.png`). Esta é a forma correta e garantirá que a sua aplicação tenha uma aparência profissional e funcione bem em todos os dispositivos. A splash screen gerada automaticamente será suficiente e proporcionará uma boa experiência de abertura.
+
+Espero que goste desta nova versão mais silenciosa e funcion
