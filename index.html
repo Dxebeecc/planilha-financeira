@@ -3,491 +3,623 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tags PWA -->
     <meta name="theme-color" content="#1f2937"/>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <title>Planilha Financeira Semestral</title>
+    <title>Finanças Pro - Timeline</title>
+    
+    <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #d1d5db; }
-        .card { background-color: #1f2937; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 1.5rem; margin-bottom: 1.5rem; }
-        .input-field { background-color: #374151; color: #e5e7eb; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem 0.75rem; width: 100%; transition: all 0.15s ease-in-out; }
-        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.35); }
-        .input-field.unpaid-value { text-decoration: line-through; opacity: 0.6; }
-        .input-field[readonly] { background-color: #4b5563; cursor: not-allowed; color: #9ca3af; }
-        .btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: all 0.15s ease-in-out; cursor: pointer; font-size: 0.875rem; }
-        .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.75rem; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; scroll-behavior: smooth; }
+        .card { background-color: #1e293b; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); padding: 1.5rem; border: 1px solid #334155; transition: transform 0.2s; }
+        .input-field { background-color: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.6rem 0.8rem; width: 100%; transition: all 0.2s; }
+        .input-field:focus { outline: none; border-color: #3b82f6; ring: 2px; ring-color: #3b82f6; }
+        .unpaid-value { text-decoration: line-through; opacity: 0.5; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: 0.6rem; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; }
         .btn-primary { background-color: #3b82f6; color: white; }
-        .btn-primary:hover { background-color: #2563eb; }
-        .btn-secondary { background-color: #4b5563; color: #d1d5db; }
-        .month-tab:not(.active-month-tab):hover { background-color: #60a5fa; }
-        .month-tab.active-month-tab { background-color: #2563eb; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transform: translateY(-2px); }
-        .month-tab.active-month-tab:hover { background-color: #1d4ed8; }
+        .btn-primary:hover { background-color: #2563eb; transform: translateY(-1px); }
+        .btn-secondary { background-color: #334155; color: #f1f5f9; }
+        .btn-secondary:hover { background-color: #475569; }
         .btn-danger { background-color: #ef4444; color: white; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-success { background-color: #22c55e; color: white; }
-        .btn-success:hover { background-color: #16a34a; }
-        .btn-edit-names { background-color: #374151; color: white; padding: 0.25rem 0.75rem; font-size: 0.875rem; }
-        .btn-edit-names:hover { background-color: #3b82f6; }
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .btn-success { background-color: #10b981; color: white; }
+
+        .month-tab { position: relative; padding: 1rem; border-bottom: 3px solid transparent; transition: all 0.3s; opacity: 0.6; cursor: pointer; background: transparent; color: inherit; }
+        .active-month-tab { opacity: 1; border-bottom-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
+
+        /* Toggle Switch Custom */
+        .toggle-switch { position: relative; display: inline-flex; width: 44px; height: 22px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #22c55e; }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #374151; }
-        .summary-item:last-child { border-bottom: none; }
-        .summary-item strong { font-weight: 600; }
-        .planilha-mes-container { transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out; opacity: 1; max-height: 20000px; overflow: hidden; }
-        .planilha-mes-container.hidden-month { opacity: 0; max-height: 0; }
-        .text-title { color: #e5e7eb; }
-        .text-label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.25rem; }
-        .text-total-income { color: #4ade80; }
-        .text-total-expenses { color: #f87171; }
-        .text-variable-expenses { color: #facc15; }
-        .text-balance { color: #60a5fa; }
-        .text-balance-negative { color: #f87171; }
-        #cashflow-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        #cashflow-modal { background: #1f2937; padding: 24px; border-radius: 8px; width: 95%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; }
-        #cashflow-modal-content { overflow-y: auto; }
-        #cashflow-modal-table { width: 100%; border-collapse: collapse; }
-        #cashflow-modal-table th, #cashflow-modal-table td { padding: 8px 12px; border-bottom: 1px solid #374151; text-align: left; }
-        #cashflow-modal-table th { font-weight: 600; }
-        .cashflow-income { color: #4ade80; }
-        .cashflow-expense { color: #f87171; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .hidden-month { display: none; }
+        ::-webkit-scrollbar { height: 4px; width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        #save-indicator { position: fixed; top: 20px; right: 20px; z-index: 100; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
     </style>
 </head>
 <body class="p-4 md:p-8">
+    <div id="save-indicator" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> Salvo
+    </div>
+
     <div class="max-w-6xl mx-auto">
-        <header class="mb-4 text-center"> 
-            <h1 class="text-3xl md:text-4xl font-bold text-title">Planilha Financeira Semestral</h1>
+        <!-- Cabeçalho -->
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white flex items-center gap-2 justify-center md:justify-start">
+                    <i data-lucide="layers" class="text-blue-500"></i> Finanças Timeline
+                </h1>
+                <p class="text-slate-400">Controle de Fluxo Semestral Contínuo</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="advanceTimeline()" class="btn btn-primary text-sm shadow-lg shadow-blue-500/20">
+                    <i data-lucide="fast-forward" class="w-4 h-4"></i> Encerrar Mês
+                </button>
+                <button onclick="openModal('backup-modal-overlay')" class="btn btn-secondary text-sm">
+                    <i data-lucide="database" class="w-4 h-4"></i> Backup
+                </button>
+                <button onclick="configurarNomesMeses()" class="btn btn-secondary text-sm">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i> Nomes
+                </button>
+            </div>
         </header>
-        <div class="mb-8 text-center space-x-2"> 
-            <button onclick="configurarNomesMeses()" class="btn btn-edit-names">Editar Nomes dos Meses</button>
+
+        <!-- Dashboard de Gráfico -->
+        <div class="card mb-8">
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="line-chart" class="text-blue-400"></i> Panorama Semestral
+            </h2>
+            <div class="h-64"><canvas id="globalChart"></canvas></div>
         </div>
 
-        <div class="mb-6 flex flex-wrap justify-center space-x-2 border-b border-gray-700 pb-4" id="month-tabs-container"></div>
+        <!-- Abas de Navegação -->
+        <div class="flex overflow-x-auto border-b border-slate-700 mb-8 no-scrollbar" id="month-tabs-container"></div>
+
+        <!-- Conteúdo dos Meses -->
         <div id="planilhas-container"></div>
-        <div class="card text-center mt-8">
-            <h2 class="text-xl font-semibold mb-4 text-title">Exportar Dados do Mês Selecionado</h2>
-            <button onclick="exportDataToCSV()" class="btn btn-success">Baixar como CSV (para Excel)</button>
+
+        <!-- Rodapé com ações -->
+        <footer class="mt-12 mb-8 border-t border-slate-700 pt-8 text-center flex flex-col md:flex-row justify-center gap-4">
+            <button onclick="exportCurrentMonthCSV()" class="btn btn-success">
+                <i data-lucide="file-spreadsheet"></i> Exportar Mês Atual (CSV)
+            </button>
+        </footer>
+    </div>
+
+    <!-- Modal Fluxo de Caixa -->
+    <div id="cashflow-modal-overlay" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="card w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold flex items-center gap-2" id="cashflow-title">Fluxo de Caixa</h2>
+                <button onclick="closeModal('cashflow-modal-overlay')" class="p-2 hover:bg-slate-700 rounded-full"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-y-auto pr-2" id="cashflow-content"></div>
         </div>
     </div>
 
-    <!-- Modal de Fluxo de Caixa -->
-    <div id="cashflow-modal-overlay">
-        <div id="cashflow-modal">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-title" id="cashflow-modal-title">Fluxo de Caixa</h2>
-                <button onclick="closeCashFlowModal()" class="text-gray-400 hover:text-white">&times;</button>
+    <!-- Modal Backup -->
+    <div id="backup-modal-overlay" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="card w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="save"></i> Backup e Restauração</h2>
+                <button onclick="closeModal('backup-modal-overlay')" class="p-2 hover:bg-slate-700 rounded-full"><i data-lucide="x"></i></button>
             </div>
-            <div id="cashflow-modal-content">
-                <table id="cashflow-modal-table">
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Saldo</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+            <div class="space-y-4">
+                <div class="p-4 bg-slate-800 rounded-lg">
+                    <p class="text-xs text-slate-400 mb-3">Baixe seus dados para segurança.</p>
+                    <button onclick="downloadBackup()" class="btn btn-primary w-full"><i data-lucide="download"></i> Baixar Backup .JSON</button>
+                </div>
+                <div class="p-4 bg-slate-800 rounded-lg">
+                    <p class="text-xs text-slate-400 mb-3">Carregue dados de outro dispositivo.</p>
+                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)">
+                    <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full"><i data-lucide="upload"></i> Carregar Backup .JSON</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let activeInternalMonthKey = 'month1'; 
-        let monthLabels = ['Mês 1', 'Mês 2', 'Mês 3', 'Mês 4', 'Mês 5', 'Mês 6']; 
-        const internalMonthKeys = ['month1', 'month2', 'month3', 'month4', 'month5', 'month6']; 
+        // --- CONSTANTES E ESTADO ---
         const HORA_EXTRA_RATE = 21;
-        const CURRENT_DATA_KEY = 'financialDataApp_semestral_v1';
-        const CURRENT_LABELS_KEY = 'monthLabelsApp_semestral_v1';
+        const STORAGE_KEY = 'financialDataApp_v7_timeline';
+        
+        let timeline = []; // Estrutura: [{ label: string, data: object }]
+        let activeIndex = 0;
+        let globalChart = null;
 
-        let financialData = {};
-
-        function saveDataToLocalStorage() {
-            try {
-                localStorage.setItem(CURRENT_DATA_KEY, JSON.stringify(financialData));
-                localStorage.setItem(CURRENT_LABELS_KEY, JSON.stringify(monthLabels));
-            } catch (e) { console.error('Erro ao salvar dados:', e); }
-        }
-
-        function loadDataFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem(CURRENT_DATA_KEY);
-                const savedLabels = localStorage.getItem(CURRENT_LABELS_KEY);
-                if (savedData && savedLabels) {
-                    financialData = JSON.parse(savedData);
-                    monthLabels = JSON.parse(savedLabels);
-                    // Verifica se a estrutura de 6 meses existe
-                    if (internalMonthKeys.every(key => financialData[key])) {
-                        return true;
-                    }
+        // --- INICIALIZAÇÃO ---
+        function initApp() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                timeline = JSON.parse(saved);
+                // Migração de dados antigos se necessário ou verificação de integridade básica
+                if (timeline.length < 6) { 
+                    // Garante que sempre temos 6 meses
+                    while(timeline.length < 6) addNextMonth();
                 }
-                return false;
-            } catch (e) {
-                localStorage.removeItem(CURRENT_DATA_KEY);
-                localStorage.removeItem(CURRENT_LABELS_KEY);
-                return false;
-            }
-        }
-
-        function initFinancialData() {
-            const today = new Date().toISOString().slice(0, 10);
-            const baseIncomeSpec = [ 
-                { name: 'Pagamento', value: 0, date: today },
-                { name: 'Vale', value: 0, date: today },
-                { name: 'Hora Extra', isCalculated: true, hours: 0, rate: HORA_EXTRA_RATE, date: today }
-            ];
-            const baseFixedSpec = [ 
-                { name: 'Carro (mensalidade)', value: 0, isPaid: true, date: today },
-                { name: 'Carro (IPVA)', value: 0, isPaid: true, date: today },
-                { name: 'Combustível', value: 0, isPaid: true, date: today },
-                { name: 'Internet', value: 0, isPaid: true, date: today }
-            ];
-            const baseVariableSpec = [ 
-                { name: 'Cartão de crédito', value: 0, isPaid: true, date: today },
-                { name: 'Gastos pessoais', value: 0, isPaid: true, date: today }
-            ];
-            
-            financialData.month1 = {
-                incomeEntries: baseIncomeSpec.map((s, i) => ({ ...s, id: Date.now() + i })),
-                fixedExpensesEntries: baseFixedSpec.map((s, i) => ({ ...s, id: Date.now() + 1000 + i })),
-                variableExpensesEntries: baseVariableSpec.map((s, i) => ({ ...s, id: Date.now() + 2000 + i }))
-            };
-            
-            const baseIncomeForCopy = JSON.parse(JSON.stringify(financialData.month1.incomeEntries));
-            const baseFixedForCopy = JSON.parse(JSON.stringify(financialData.month1.fixedExpensesEntries));
-            const baseVariableForCopy = JSON.parse(JSON.stringify(financialData.month1.variableExpensesEntries));
-
-            // Loop para criar os 5 meses seguintes
-            for (let i = 1; i < 6; i++) {
-                const monthKey = internalMonthKeys[i];
-                financialData[monthKey] = {
-                    incomeEntries: [
-                        { id: `saldoAnterior-${monthKey}`, name: 'Saldo Mês Anterior', value: 0, isSystemEntry: true, date: '' },
-                        ...baseIncomeForCopy.map(e => ({ ...e, id: Date.now() + Math.random(), value: (e.isCalculated ? undefined : e.value), hours: 0 }))
-                    ],
-                    fixedExpensesEntries: baseFixedForCopy.map(e => ({ ...e, id: Date.now() + Math.random() })),
-                    variableExpensesEntries: baseVariableForCopy.map(e => ({ ...e, id: Date.now() + Math.random(), value: 0 }))
-                };
-            }
-        }
-        
-        function generateMonthHTML(internalKey, displayLabel) {
-            const isFirstMonth = internalKey === 'month1';
-            const copyButton = (type) => !isFirstMonth ? `<button onclick="copyDataFromPreviousMonth('${type}')" class="btn btn-secondary btn-sm">Copiar Mês Anterior</button>` : '';
-            return `
-                <div id="planilha-${internalKey}-container" class="planilha-mes-container hidden-month">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="card col-span-1 md:col-span-1">
-                            <h2 class="text-xl font-semibold mb-4 text-title">Entradas (R$) - ${displayLabel}</h2>
-                            <div class="income-list"></div>
-                            <div class="mt-4 flex flex-wrap justify-start gap-2"> <button onclick="addEntry('income')" class="btn btn-primary btn-sm">Adicionar</button> ${copyButton('income')} </div>
-                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Entradas: <span class="total-income text-total-income">R$ 0.00</span></p> </div>
-                        </div>
-                        <div class="card col-span-1 md:col-span-2">
-                            <h2 class="text-xl font-semibold mb-4 text-title">Resumo Financeiro - ${displayLabel}</h2>
-                            <div class="space-y-3">
-                                <div class="summary-item"><span class="text-title">Total Entradas:</span><strong class="summary-total-income text-total-income">R$ 0.00</strong></div>
-                                <div class="summary-item"><span class="text-title">Total Dívidas Fixas (Pagas):</span><strong class="summary-total-fixed-expenses text-total-expenses">R$ 0.00</strong></div>
-                                <div class="summary-item"><span class="text-title">Total Dívidas Variáveis (Pagas):</span><strong class="summary-total-variable-expenses text-variable-expenses">R$ 0.00</strong></div>
-                                <div class="summary-item"><span class="text-title">Total Geral de Despesas:</span><strong class="summary-total-expenses text-total-expenses">R$ 0.00</strong></div>
-                                <div class="summary-item text-xl"><span class="text-title">Saldo Restante:</span><strong class="summary-balance text-balance">R$ 0.00</strong></div>
-                            </div>
-                             <div class="mt-6 flex justify-center"> <button onclick="showCashFlowModal()" class="btn btn-primary">Ver Fluxo de Caixa</button> </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <div class="card">
-                            <h2 class="text-xl font-semibold mb-4 text-title">Dívidas Fixas (R$) - ${displayLabel}</h2>
-                            <div class="fixed-expenses-list"></div>
-                            <div class="mt-4 flex flex-wrap justify-start gap-2"> <button onclick="addEntry('fixed-expenses')" class="btn btn-primary btn-sm">Adicionar</button> ${copyButton('fixed-expenses')} </div>
-                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Dívidas Fixas (Pagas): <span class="total-fixed-expenses text-total-expenses">R$ 0.00</span></p> </div>
-                        </div>
-                        <div class="card">
-                            <h2 class="text-xl font-semibold mb-4 text-title">Dívidas Variáveis (R$) - ${displayLabel}</h2>
-                            <div class="variable-expenses-list"></div>
-                            <div class="mt-4 flex justify-start"> <button onclick="addEntry('variable-expenses')" class="btn btn-primary btn-sm">Adicionar</button> </div>
-                            <div class="mt-4 pt-4 border-t border-gray-700"> <p class="text-lg font-semibold text-title">Total Dívidas Variáveis (Pagas): <span class="total-variable-expenses text-variable-expenses">R$ 0.00</span></p> </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        const keyMap = { 'income': 'incomeEntries', 'fixed-expenses': 'fixedExpensesEntries', 'variable-expenses': 'variableExpensesEntries' };
-        function getTargetArray(listTypeClass) { return financialData[activeInternalMonthKey]?.[keyMap[listTypeClass]]; }
-
-        function copyDataFromPreviousMonth(listTypeClass) {
-            if (activeInternalMonthKey === 'month1') return;
-            const prevKey = internalMonthKeys[internalMonthKeys.indexOf(activeInternalMonthKey) - 1];
-            const targetKey = keyMap[listTypeClass];
-            const dataToCopy = financialData[prevKey][targetKey];
-            const copiedData = JSON.parse(JSON.stringify(dataToCopy)); 
-            copiedData.forEach(entry => { entry.id = Date.now() + Math.random(); });
-            if (listTypeClass === 'income') {
-                const saldoAnteriorEntry = financialData[activeInternalMonthKey].incomeEntries.find(e => e.isSystemEntry);
-                const userEntriesToCopy = copiedData.filter(e => !e.isSystemEntry);
-                financialData[activeInternalMonthKey].incomeEntries = [saldoAnteriorEntry, ...userEntriesToCopy];
             } else {
-                financialData[activeInternalMonthKey][targetKey] = copiedData;
+                createDefaultTimeline();
             }
-            renderAllAndSave();
+            
+            renderTabs();
+            renderMonths();
+            updateChart();
+            selecionarMes(0);
+            lucide.createIcons();
         }
 
-        function renderMonthTabs() {
-            const tabsContainer = document.getElementById('month-tabs-container');
-            tabsContainer.innerHTML = '';
-            internalMonthKeys.forEach((internalKey, index) => {
-                const button = document.createElement('button');
-                button.textContent = monthLabels[index];
-                button.id = `btn-${internalKey}`;
-                button.classList.add('month-tab', 'btn');
-                button.classList.toggle('active-month-tab', internalKey === activeInternalMonthKey);
-                button.classList.toggle('btn-secondary', internalKey !== activeInternalMonthKey);
-                button.onclick = () => selecionarMes(internalKey);
-                tabsContainer.appendChild(button);
+        function createDefaultTimeline() {
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            let startMonthIdx = new Date().getMonth();
+            
+            timeline = [];
+            for (let i = 0; i < 6; i++) {
+                const idx = (startMonthIdx + i) % 12;
+                timeline.push({
+                    label: monthNames[idx],
+                    data: createEmptyMonthData()
+                });
+            }
+            saveData();
+        }
+
+        function createEmptyMonthData() {
+            const today = new Date().toISOString().slice(0, 10);
+            return {
+                incomeEntries: [
+                    { id: 'saldo-' + Math.random(), name: 'Saldo Anterior', value: 0, isSystem: true, date: '' },
+                    { id: Math.random(), name: 'Pagamento', value: 0, date: today },
+                    { id: Math.random(), name: 'Vale', value: 0, date: today },
+                    { id: Math.random(), name: 'Hora Extra', isCalculated: true, hours: 0, rate: HORA_EXTRA_RATE, date: today }
+                ],
+                fixedExpenses: [
+                    { id: Math.random(), name: 'Internet', value: 0, isPaid: true, date: today },
+                    { id: Math.random(), name: 'Energia', value: 0, isPaid: true, date: today }
+                ],
+                variableExpenses: [
+                    { id: Math.random(), name: 'Cartão de Crédito', value: 0, isPaid: true, date: today }
+                ]
+            };
+        }
+
+        // --- SISTEMA DE TIMELINE DINÂMICA ---
+
+        function advanceTimeline() {
+            const currentMonthName = timeline[0].label;
+            const confirmMsg = `Deseja encerrar o mês de "${currentMonthName}"?\n\nO sistema irá apagar os dados deste mês, mover os próximos para frente e criar um novo mês no final da lista.`;
+            
+            if (!confirm(confirmMsg)) return;
+
+            // Remove o mês mais antigo
+            timeline.shift();
+
+            // Adiciona um novo mês no final
+            addNextMonth();
+
+            // Recalcula todos os saldos transportados
+            propagateBalances();
+            
+            saveData();
+            location.reload(); // Recarrega para reconstruir a UI limpa
+        }
+
+        function addNextMonth() {
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            const lastMonthLabel = timeline[timeline.length - 1].label;
+            const nextIdx = (monthNames.indexOf(lastMonthLabel) + 1) % 12;
+            
+            timeline.push({
+                label: monthNames[nextIdx],
+                data: createEmptyMonthData()
             });
         }
-        function renderMonthPlanilhas() {
-            document.getElementById('planilhas-container').innerHTML = internalMonthKeys.map((key, index) => generateMonthHTML(key, monthLabels[index])).join('');
+
+        // --- PERSISTÊNCIA E CÁLCULO ---
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(timeline));
+            updateChart();
+            showSaveIndicator();
         }
-        function configurarNomesMeses() {
-            const novosNomes = monthLabels.map((currentName, i) => {
-                const nome = prompt(`Digite o nome para o Mês ${i + 1}:`, currentName);
-                return nome?.trim() || currentName;
-            });
-            if (JSON.stringify(novosNomes) !== JSON.stringify(monthLabels)) {
-                monthLabels = novosNomes;
-                renderMonthTabs();
-                renderMonthPlanilhas(); 
-                propagateAllBalances(); 
-                selecionarMes(activeInternalMonthKey, false);
-                saveDataToLocalStorage(); 
-            }
+
+        function showSaveIndicator() {
+            const el = document.getElementById('save-indicator');
+            el.style.opacity = '1';
+            setTimeout(() => { el.style.opacity = '0'; }, 1500);
         }
-        function formatCurrency(value) { return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-        function getActiveMonthContainer() { return document.getElementById(`planilha-${activeInternalMonthKey}-container`); }
 
-        function renderList(listTypeClass, entries) {
-            const listElement = getActiveMonthContainer()?.querySelector(`.${listTypeClass}-list`);
-            if (!listElement) return;
-
-            listElement.innerHTML = entries.map((entry) => {
-                let html;
-                const isExpense = listTypeClass.includes('expenses');
-                const hasPaidToggle = isExpense;
-
-                let mainInputHTML;
-                if (entry.isCalculated) {
-                    const calculatedValue = (entry.hours || 0) * (entry.rate || 0);
-                    mainInputHTML = `<div class="flex space-x-2"> <div class="w-1/2"> <div class="text-label">Qtd. Horas</div> <input type="number" value="${entry.hours || 0}" class="input-field text-sm w-full" onchange="updateEntry('${listTypeClass}', '${entry.id}', 'hours', this.value)" step="1"> </div> <div class="w-1/2"> <div class="text-label">Valor Total (R$)</div> <input type="number" value="${calculatedValue.toFixed(2)}" class="input-field text-sm w-full" readonly> </div> </div>`;
-                } else {
-                    mainInputHTML = `<input type="number" value="${entry.value || 0}" class="input-field text-sm w-full ${!entry.isPaid && isExpense ? 'unpaid-value' : ''}" onchange="updateEntry('${listTypeClass}', '${entry.id}', 'value', this.value)" step="0.01">`;
+        function propagateBalances() {
+            for (let i = 0; i < timeline.length - 1; i++) {
+                const totals = calculateTotalsForData(timeline[i].data);
+                const nextMonth = timeline[i+1];
+                let saldoEntry = nextMonth.data.incomeEntries.find(e => e.isSystem);
+                
+                if (!saldoEntry) {
+                    saldoEntry = { id: 'saldo-' + Math.random(), name: 'Saldo Anterior', value: 0, isSystem: true, date: '' };
+                    nextMonth.data.incomeEntries.unshift(saldoEntry);
                 }
+                saldoEntry.value = totals.balance;
+            }
+        }
 
-                const dateInputHTML = `<div class="w-1/2"> <div class="text-label">Data</div> <input type="date" value="${entry.date || ''}" class="input-field text-sm" onchange="updateEntry('${listTypeClass}', '${entry.id}', 'date', this.value)"> </div>`;
-                const paidToggleHTML = hasPaidToggle ? `<div class="w-1/2 flex flex-col items-center justify-end"> <div class="text-label">Pago?</div> <label class="toggle-switch"> <input type="checkbox" ${entry.isPaid ? 'checked' : ''} onchange="togglePaidStatus('${listTypeClass}', '${entry.id}')"> <span class="slider"></span> </label> </div>` : '';
-                const removeButtonHTML = !entry.isSystemEntry ? `<button onclick="removeEntry('${listTypeClass}', '${entry.id}')" class="btn btn-danger btn-sm">Remover</button>` : `<div class="w-20 h-6"></div>`;
+        function calculateTotalsForData(data) {
+            const inc = data.incomeEntries.reduce((s, i) => s + (i.isCalculated ? (i.hours * i.rate) : (i.value || 0)), 0);
+            const expFixed = data.fixedExpenses.reduce((s, i) => s + (i.isPaid ? (i.value || 0) : 0), 0);
+            const expVar = data.variableExpenses.reduce((s, i) => s + (i.isPaid ? (i.value || 0) : 0), 0);
+            const totalExp = expFixed + expVar;
+            return { inc, exp: totalExp, balance: inc - totalExp };
+        }
 
-                html = `
-                    <div class="flex items-center justify-between mb-1">
-                        <input type="text" value="${entry.name}" class="input-field text-sm font-medium flex-grow mr-2" ${entry.isSystemEntry ? 'readonly' : ''} onchange="updateEntry('${listTypeClass}', '${entry.id}', 'name', this.value)">
-                        ${removeButtonHTML}
-                    </div>
-                    <div class="flex items-end space-x-2 mt-2">
-                        <div class="flex-grow">${mainInputHTML}</div>
-                        ${dateInputHTML}
-                        ${paidToggleHTML || ''}
-                    </div>`;
+        // --- INTERFACE (DOM) ---
 
-                return `<div class="mb-3 p-3 border border-gray-700 rounded-lg" data-id="${entry.id}">${html}</div>`;
+        function renderTabs() {
+            const container = document.getElementById('month-tabs-container');
+            container.innerHTML = timeline.map((m, i) => {
+                const hasUnpaid = [...m.data.fixedExpenses, ...m.data.variableExpenses].some(e => !e.isPaid);
+                return `
+                    <button onclick="selecionarMes(${i})" id="tab-${i}" class="month-tab flex items-center gap-2 whitespace-nowrap">
+                        ${m.label}
+                        ${hasUnpaid ? '<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>' : ''}
+                    </button>
+                `;
             }).join('');
         }
 
-        function togglePaidStatus(listTypeClass, id) {
-            const entry = getTargetArray(listTypeClass)?.find(e => e.id.toString() === id.toString());
-            if (entry) {
-                entry.isPaid = !entry.isPaid;
-                renderAllAndSave();
-            }
+        function renderMonths() {
+            const container = document.getElementById('planilhas-container');
+            container.innerHTML = timeline.map((m, i) => `
+                <div id="container-${i}" class="planilha-mes-container hidden-month">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- COLUNA 1: ENTRADAS -->
+                        <div class="space-y-6">
+                            <div class="card border-l-4 border-green-500">
+                                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-green-400">
+                                    <i data-lucide="arrow-down-to-line"></i> Entradas
+                                </h3>
+                                <div id="list-income-${i}" class="space-y-4"></div>
+                                <div class="mt-4 flex gap-2">
+                                    <button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm flex-grow"><i data-lucide="plus" class="w-4 h-4"></i> Novo</button>
+                                    ${i > 0 ? `<button onclick="copyStructure(${i}, 'income')" class="btn btn-secondary btn-sm" title="Copiar do mês anterior"><i data-lucide="copy" class="w-4 h-4"></i></button>` : ''}
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-slate-700">
+                                    <p class="text-slate-400 text-sm uppercase font-bold">Total Recebido</p>
+                                    <p class="text-2xl font-black text-green-400" id="stat-inc-${i}">R$ 0,00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COLUNA 2 E 3: DESPESAS E FLUXO -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="card bg-red-500/5 border-red-500/20 text-center py-4">
+                                    <p class="text-xs text-slate-400 uppercase font-bold">Total Pago</p>
+                                    <p class="text-2xl font-black text-red-400" id="stat-exp-${i}">R$ 0,00</p>
+                                </div>
+                                <div class="card bg-blue-500/5 border-blue-500/20 text-center py-4">
+                                    <p class="text-xs text-slate-400 uppercase font-bold">Saldo Livre</p>
+                                    <p class="text-2xl font-black text-blue-400" id="stat-bal-${i}">R$ 0,00</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- FIXAS -->
+                                <div class="card border-l-4 border-blue-500">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h4 class="font-bold flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-blue-400"></i> Fixas</h4>
+                                        ${i > 0 ? `<button onclick="copyStructure(${i}, 'fixed')" class="text-slate-500 hover:text-white"><i data-lucide="copy" class="w-3 h-3"></i></button>` : ''}
+                                    </div>
+                                    <div id="list-fixed-${i}" class="space-y-3"></div>
+                                    <button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-4"><i data-lucide="plus" class="w-4 h-4"></i> Adicionar</button>
+                                </div>
+                                <!-- VARIÁVEIS -->
+                                <div class="card border-l-4 border-orange-500">
+                                    <h4 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-orange-400"></i> Variáveis</h4>
+                                    <div id="list-variable-${i}" class="space-y-3"></div>
+                                    <button onclick="addItem(${i}, 'variable')" class="btn btn-secondary btn-sm w-full mt-4"><i data-lucide="plus" class="w-4 h-4"></i> Adicionar</button>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-center pt-4">
+                                <button onclick="showCashFlow(${i})" class="btn btn-primary px-10 shadow-lg shadow-blue-500/10">
+                                    <i data-lucide="calendar"></i> Analisar Fluxo do Mês
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            renderAllLists();
         }
-        function renderIncomeEntries() { renderList('income', getTargetArray('income')); }
-        function renderFixedExpensesEntries() { renderList('fixed-expenses', getTargetArray('fixed-expenses')); }
-        function renderVariableExpensesEntries() { renderList('variable-expenses', getTargetArray('variable-expenses')); }
-        
-        function addEntry(listTypeClass) {
-            const targetArray = getTargetArray(listTypeClass);
-            if (!targetArray) return;
-            const defaultName = listTypeClass === 'income' ? 'Nova Entrada' : (listTypeClass === 'fixed-expenses' ? 'Nova Dívida Fixa' : 'Nova Dívida Variável');
-            const entryData = { id: Date.now() + Math.random(), name: defaultName, value: 0, date: new Date().toISOString().slice(0, 10) };
-            if (listTypeClass.includes('expenses')) entryData.isPaid = true;
-            targetArray.push(entryData);
-            renderAllAndSave();
+
+        function renderAllLists() {
+            timeline.forEach((m, i) => {
+                renderItemList(i, 'income', m.data.incomeEntries);
+                renderItemList(i, 'fixed', m.data.fixedExpenses);
+                renderItemList(i, 'variable', m.data.variableExpenses);
+                updateStatsDisplay(i);
+            });
+            lucide.createIcons();
         }
-        
-        function updateEntry(listTypeClass, id, key, newValue) {
-            const targetArray = getTargetArray(listTypeClass);
-            const entry = targetArray?.find(e => e.id.toString() === id.toString());
-            if (entry && !entry.isSystemEntry) {
-                 entry[key] = (key === 'value' || key === 'hours') ? parseFloat(newValue) || 0 : newValue;
-                 renderAllAndSave();
-            }
-        }
-        
-        function removeEntry(listTypeClass, id) {
-            const targetKey = keyMap[listTypeClass];
-            if (!targetKey) return;
-            financialData[activeInternalMonthKey][targetKey] = financialData[activeInternalMonthKey][targetKey].filter(e => e.id.toString() !== id.toString());
-            renderAllAndSave();
-        }
-        
-        function calculateMonthBalance(internalKey) {
-            const monthData = financialData[internalKey];
-            if (!monthData) return 0;
-            const totalIncome = monthData.incomeEntries.reduce((s, e) => s + (e.isCalculated ? (e.hours * e.rate) : (e.value || 0)), 0);
-            const totalFixed = monthData.fixedExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
-            const totalVariable = monthData.variableExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
-            return totalIncome - (totalFixed + totalVariable);
-        }
-        function propagateAllBalances() {
-            for (let i = 1; i < internalMonthKeys.length; i++) {
-                const prevBalance = calculateMonthBalance(internalMonthKeys[i-1]);
-                const saldoEntry = financialData[internalMonthKeys[i]]?.incomeEntries.find(e => e.isSystemEntry);
-                if (saldoEntry) saldoEntry.value = prevBalance;
-            }
-            if (getActiveMonthContainer()) {
-                calculateAndDisplayTotalsForActiveMonth();
-                renderIncomeEntries();
-            }
-        }
-        function calculateAndDisplayTotalsForActiveMonth() {
-            const container = getActiveMonthContainer();
+
+        function renderItemList(mIdx, type, items) {
+            const container = document.getElementById(`list-${type}-${mIdx}`);
             if (!container) return;
-            const data = financialData[activeInternalMonthKey];
-            if (!data) return;
 
-            const totalIncome = data.incomeEntries.reduce((s, e) => s + (e.isCalculated ? (e.hours * e.rate) : (e.value || 0)), 0);
-            const totalFixed = data.fixedExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
-            const totalVariable = data.variableExpensesEntries.reduce((s, e) => s + (e.isPaid ? (e.value || 0) : 0), 0);
-            const totalExpenses = totalFixed + totalVariable;
-            const balance = totalIncome - totalExpenses;
+            container.innerHTML = items.map(item => {
+                const isPaid = item.isPaid !== undefined ? item.isPaid : true;
+                const isSystem = item.isSystem;
+                
+                let valueField = `<input type="number" step="0.01" value="${item.value || 0}" class="input-field text-sm ${!isPaid ? 'unpaid-value' : ''}" onchange="updateItemValue(${mIdx}, '${type}', '${item.id}', this.value)" ${isSystem ? 'readonly' : ''}>`;
+                
+                if (item.isCalculated) {
+                    const total = (item.hours || 0) * (item.rate || 0);
+                    valueField = `
+                        <div class="flex gap-1">
+                            <input type="number" value="${item.hours || 0}" placeholder="Hs" class="input-field text-xs w-14" onchange="updateItemProp(${mIdx}, 'income', '${item.id}', 'hours', this.value)">
+                            <div class="input-field text-xs bg-slate-800 flex items-center justify-center font-bold min-w-[70px]">R$ ${total}</div>
+                        </div>`;
+                }
 
-            container.querySelectorAll('.total-income, .summary-total-income').forEach(el => el.textContent = formatCurrency(totalIncome));
-            container.querySelectorAll('.total-fixed-expenses, .summary-total-fixed-expenses').forEach(el => el.textContent = formatCurrency(totalFixed));
-            container.querySelectorAll('.total-variable-expenses, .summary-total-variable-expenses').forEach(el => el.textContent = formatCurrency(totalVariable));
-            container.querySelectorAll('.summary-total-expenses').forEach(el => el.textContent = formatCurrency(totalExpenses));
-            
-            const balanceEl = container.querySelector('.summary-balance');
-            balanceEl.textContent = formatCurrency(balance);
-            balanceEl.classList.toggle('text-balance', balance >= 0);
-            balanceEl.classList.toggle('text-balance-negative', balance < 0);
+                return `
+                    <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-2 gap-2">
+                            <input type="text" value="${item.name}" class="bg-transparent border-none text-sm font-semibold w-full focus:ring-0" onchange="updateItemProp(${mIdx}, '${type}', '${item.id}', 'name', this.value)" ${isSystem ? 'readonly' : ''}>
+                            ${!isSystem ? `<button onclick="removeItem(${mIdx}, '${type}', '${item.id}')" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="date" value="${item.date || ''}" class="input-field text-xs p-1 h-9 w-32" onchange="updateItemProp(${mIdx}, '${type}', '${item.id}', 'date', this.value)">
+                            <div class="flex-grow">${valueField}</div>
+                            ${item.isPaid !== undefined ? `
+                                <label class="toggle-switch">
+                                    <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="togglePaidStatus(${mIdx}, '${type}', '${item.id}')">
+                                    <span class="slider"></span>
+                                </label>` : ''}
+                        </div>
+                    </div>`;
+            }).join('');
         }
-        
-        function showCashFlowModal() {
-            const data = financialData[activeInternalMonthKey];
-            const saldoAnterior = financialData[activeInternalMonthKey].incomeEntries.find(e => e.isSystemEntry)?.value || 0;
 
-            const incomes = data.incomeEntries.filter(e => !e.isSystemEntry && e.date).map(e => ({ ...e, type: 'income', amount: e.isCalculated ? e.hours * e.rate : e.value }));
-            const fixedExpenses = data.fixedExpensesEntries.filter(e => e.isPaid && e.date).map(e => ({ ...e, type: 'expense', amount: -e.value }));
-            const variableExpenses = data.variableExpensesEntries.filter(e => e.isPaid && e.date).map(e => ({ ...e, type: 'expense', amount: -e.value }));
+        // --- FUNÇÕES DE INTERAÇÃO ---
 
-            const transactions = [...incomes, ...fixedExpenses, ...variableExpenses].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            const tableBody = document.querySelector('#cashflow-modal-table tbody');
-            tableBody.innerHTML = '';
-            let runningBalance = saldoAnterior;
-
-            if (saldoAnterior !== 0) {
-                 tableBody.innerHTML += `<tr><td>Início</td><td>Saldo Anterior</td><td class="cashflow-income">${formatCurrency(saldoAnterior)}</td><td>${formatCurrency(runningBalance)}</td></tr>`;
+        function updateItemProp(mIdx, type, id, prop, val) {
+            const list = getListByType(mIdx, type);
+            const item = list.find(i => i.id == id);
+            if (item) {
+                item[prop] = (prop === 'hours') ? parseFloat(val) : val;
+                saveData();
+                renderAllLists();
             }
-
-            transactions.forEach(t => {
-                runningBalance += t.amount;
-                const row = `
-                    <tr>
-                        <td>${new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                        <td>${t.name}</td>
-                        <td class="${t.type === 'income' ? 'cashflow-income' : 'cashflow-expense'}">${formatCurrency(t.amount)}</td>
-                        <td class="${runningBalance < 0 ? 'text-balance-negative' : ''}">${formatCurrency(runningBalance)}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-            document.getElementById('cashflow-modal-title').textContent = `Fluxo de Caixa - ${monthLabels[internalMonthKeys.indexOf(activeInternalMonthKey)]}`;
-            document.getElementById('cashflow-modal-overlay').style.display = 'flex';
-        }
-        function closeCashFlowModal() {
-            document.getElementById('cashflow-modal-overlay').style.display = 'none';
         }
 
-        function exportDataToCSV() {
-            const monthLabel = monthLabels[internalMonthKeys.indexOf(activeInternalMonthKey)];
-            const data = financialData[activeInternalMonthKey];
-            let csv = `Mês: ${monthLabel}\r\nTipo,Descrição,Valor,Status\r\n`;
+        function updateItemValue(mIdx, type, id, val) {
+            const list = getListByType(mIdx, type);
+            const item = list.find(i => i.id == id);
+            if (item) {
+                item.value = parseFloat(val) || 0;
+                saveData();
+                propagateBalances(); // Se mudar valor, altera saldos futuros
+                renderAllLists();
+            }
+        }
 
-            data.incomeEntries.forEach(e => {
-                csv += `Entrada,"${e.name.replace(/"/g, '""')}",${e.isCalculated ? (e.hours*e.rate) : e.value},N/A\r\n`;
-            });
-            data.fixedExpensesEntries.forEach(e => {
-                csv += `Dívida Fixa,"${e.name.replace(/"/g, '""')}",${e.value},${e.isPaid ? 'Paga' : 'Não Paga'}\r\n`;
-            });
-            data.variableExpensesEntries.forEach(e => {
-                csv += `Dívida Variável,"${e.name.replace(/"/g, '""')}",${e.value},${e.isPaid ? 'Paga' : 'Não Paga'}\r\n`;
-            });
+        function togglePaidStatus(mIdx, type, id) {
+            const list = getListByType(mIdx, type);
+            const item = list.find(i => i.id == id);
+            if (item) {
+                item.isPaid = !item.isPaid;
+                saveData();
+                propagateBalances();
+                renderAllLists();
+                renderTabs();
+                lucide.createIcons();
+            }
+        }
+
+        function addItem(mIdx, type) {
+            const list = getListByType(mIdx, type);
+            const newItem = {
+                id: Math.random(),
+                name: 'Novo Item',
+                value: 0,
+                date: new Date().toISOString().slice(0, 10)
+            };
+            if (type !== 'income') newItem.isPaid = true;
+            list.push(newItem);
+            saveData();
+            renderAllLists();
+        }
+
+        function removeItem(mIdx, type, id) {
+            if (!confirm('Excluir este item?')) return;
+            const data = timeline[mIdx].data;
+            if (type === 'income') data.incomeEntries = data.incomeEntries.filter(i => i.id != id);
+            else if (type === 'fixed') data.fixedExpenses = data.fixedExpenses.filter(i => i.id != id);
+            else data.variableExpenses = data.variableExpenses.filter(i => i.id != id);
+            saveData();
+            propagateBalances();
+            renderAllLists();
+        }
+
+        function copyStructure(mIdx, type) {
+            if (mIdx === 0) return;
+            const key = type === 'income' ? 'incomeEntries' : 'fixedExpenses';
+            const prevData = JSON.parse(JSON.stringify(timeline[mIdx-1].data[key]));
             
-            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `planilha_financeira_${monthLabel.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const cleanData = prevData.map(item => {
+                if (!item.isSystem) item.id = Math.random();
+                return item;
+            });
+
+            if (type === 'income') {
+                const system = timeline[mIdx].data.incomeEntries.filter(i => i.isSystem);
+                const user = cleanData.filter(i => !i.isSystem);
+                timeline[mIdx].data.incomeEntries = [...system, ...user];
+            } else {
+                timeline[mIdx].data.fixedExpenses = cleanData;
+            }
+            saveData();
+            propagateBalances();
+            renderAllLists();
         }
 
-        function renderAll() {
-            renderIncomeEntries();
-            renderFixedExpensesEntries();
-            renderVariableExpensesEntries();
-            calculateAndDisplayTotalsForActiveMonth(); 
+        function getListByType(mIdx, type) {
+            const d = timeline[mIdx].data;
+            if (type === 'income') return d.incomeEntries;
+            if (type === 'fixed') return d.fixedExpenses;
+            return d.variableExpenses;
         }
 
-        function renderAllAndSave() {
-            renderAll();
-            propagateAllBalances();
-            saveDataToLocalStorage();
+        function updateStatsDisplay(mIdx) {
+            const t = calculateTotalsForData(timeline[mIdx].data);
+            document.getElementById(`stat-inc-${mIdx}`).textContent = formatBRL(t.inc);
+            document.getElementById(`stat-exp-${mIdx}`).textContent = formatBRL(t.exp);
+            const bEl = document.getElementById(`stat-bal-${mIdx}`);
+            bEl.textContent = formatBRL(t.balance);
+            bEl.className = `text-2xl font-black ${t.balance >= 0 ? 'text-blue-400' : 'text-red-400'}`;
         }
 
-        function selecionarMes(key, skipRender = false) {
-            activeInternalMonthKey = key;
+        // --- NAVEGAÇÃO E UI ---
+
+        function selecionarMes(idx) {
+            activeIndex = idx;
             document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.add('hidden-month'));
-            document.getElementById(`planilha-${key}-container`)?.classList.remove('hidden-month');
-            
-            document.querySelectorAll('.month-tab').forEach(b => b.classList.remove('active-month-tab'));
-            document.getElementById(`btn-${key}`)?.classList.add('active-month-tab');
-            if(!skipRender) renderAll();
+            document.getElementById(`container-${idx}`).classList.remove('hidden-month');
+            document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active-month-tab'));
+            document.getElementById(`tab-${idx}`).classList.add('active-month-tab');
         }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!loadDataFromLocalStorage()) {
-                initFinancialData(); 
-            }
-            renderMonthTabs(); 
-            renderMonthPlanilhas(); 
-            propagateAllBalances(); 
-            selecionarMes(activeInternalMonthKey || internalMonthKeys[0]); 
-        });
 
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(registration => {
-                    console.log('Service Worker registrado com sucesso:', registration.scope);
-                }, err => {
-                    console.log('Falha ao registrar Service Worker:', err);
-                });
+        function configurarNomesMeses() {
+            timeline.forEach((m, i) => {
+                const n = prompt(`Nome do Mês ${i+1}:`, m.label);
+                if (n) m.label = n;
+            });
+            saveData();
+            renderTabs();
+            updateChart();
+            selecionarMes(activeIndex);
+        }
+
+        function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // --- BACKUP ---
+
+        function downloadBackup() {
+            const dataStr = JSON.stringify(timeline);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_timeline_${new Date().toLocaleDateString()}.json`;
+            a.click();
+        }
+
+        function handleImport(input) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        timeline = data;
+                        saveData();
+                        location.reload();
+                    }
+                } catch(err) { alert('Erro ao carregar arquivo de backup.'); }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        // --- GRÁFICOS ---
+        function updateChart() {
+            const ctx = document.getElementById('globalChart').getContext('2d');
+            const labels = timeline.map(m => m.label);
+            const incomes = timeline.map(m => calculateTotalsForData(m.data).inc);
+            const expenses = timeline.map(m => calculateTotalsForData(m.data).exp);
+
+            if (globalChart) globalChart.destroy();
+            globalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Entradas', data: incomes, backgroundColor: '#10b981', borderRadius: 5 },
+                        { label: 'Despesas', data: expenses, backgroundColor: '#ef4444', borderRadius: 5 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: { legend: { labels: { color: '#f1f5f9' } } }
+                }
             });
         }
+
+        // --- FLUXO DE CAIXA ---
+        function showCashFlow(idx) {
+            const m = timeline[idx];
+            const entries = [
+                ...m.data.incomeEntries.map(i => ({ ...i, type: 'IN', val: i.isCalculated ? i.hours * i.rate : i.value })),
+                ...m.data.fixedExpenses.filter(e => e.isPaid).map(i => ({ ...i, type: 'OUT', val: -i.value })),
+                ...m.data.variableExpenses.filter(e => e.isPaid).map(i => ({ ...i, type: 'OUT', val: -i.value }))
+            ].sort((a, b) => new Date(a.date || '9999-12-31') - new Date(b.date || '9999-12-31'));
+
+            let running = 0;
+            const rows = entries.map(e => {
+                running += e.val;
+                return `
+                    <tr class="text-sm border-b border-slate-700">
+                        <td class="py-3 px-2 text-slate-400">${e.date ? new Date(e.date + 'T00:00:00').toLocaleDateString('pt-BR') : '--'}</td>
+                        <td class="py-3 px-2 font-medium">${e.name}</td>
+                        <td class="py-3 px-2 text-right ${e.type === 'IN' ? 'text-green-400' : 'text-red-400'}">${formatBRL(e.val)}</td>
+                        <td class="py-3 px-2 text-right font-bold ${running < 0 ? 'text-red-500' : 'text-blue-400'}">${formatBRL(running)}</td>
+                    </tr>`;
+            }).join('');
+
+            document.getElementById('cashflow-content').innerHTML = `
+                <table class="w-full">
+                    <thead><tr class="text-left text-xs uppercase text-slate-500"><th class="px-2">Data</th><th class="px-2">Item</th><th class="px-2 text-right">Valor</th><th class="px-2 text-right">Acumulado</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+            document.getElementById('cashflow-title').innerText = `Fluxo de Caixa: ${m.label}`;
+            openModal('cashflow-modal-overlay');
+            lucide.createIcons();
+        }
+
+        function exportCurrentMonthCSV() {
+            const m = timeline[activeIndex];
+            let csv = "Tipo;Data;Descricao;Valor;Status\n";
+            const add = (t, l) => l.forEach(i => csv += `${t};${i.date || ''};${i.name};${i.isCalculated ? i.hours*i.rate : i.value};${i.isPaid === false ? 'Pendente' : 'OK'}\n`);
+            add('Entrada', m.data.incomeEntries);
+            add('Fixa', m.data.fixedExpenses);
+            add('Variavel', m.data.variableExpenses);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `financeiro_${m.label}.csv`;
+            a.click();
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
