@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <title id="page-title">Finanças Pro v19</title>
+    <title id="page-title">Finanças Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -20,11 +20,11 @@
         .input-field { background-color: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.6rem 0.8rem; width: 100%; transition: all 0.2s; font-size: 0.875rem; }
         .input-field:focus { outline: none; border-color: #3b82f6; ring: 2px; ring-color: #3b82f6; }
         
-        /* STATUS DE PAGAMENTO HIGH CONTRAST */
-        .item-row { transition: all 0.2s ease; border-width: 2px; border-style: solid; }
-        .item-paid { background-color: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.4) !important; }
+        /* CORES DE STATUS DE PAGAMENTO */
+        .item-row { transition: all 0.2s ease; border-width: 2px; border-style: solid; position: relative; }
+        .item-paid { background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3) !important; }
         .item-paid .main-text, .item-paid input { color: #10b981 !important; }
-        .item-unpaid { background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4) !important; }
+        .item-unpaid { background-color: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.3) !important; }
         .item-unpaid .main-text, .item-unpaid input { color: #ef4444 !important; }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1rem; border-radius: 0.6rem; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; font-size: 0.8rem; white-space: nowrap; }
@@ -33,7 +33,6 @@
         .btn-secondary { background-color: #334155; color: #f1f5f9; }
         .btn-success { background-color: #10b981; color: white; }
 
-        /* Botão Flutuante Gráfico */
         .fab { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #3b82f6; color: white; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5); cursor: pointer; z-index: 40; transition: transform 0.2s; }
         .fab:hover { transform: scale(1.1); }
 
@@ -50,11 +49,13 @@
         input:checked + .slider { background-color: #10b981; }
         input:checked + .slider:before { transform: translateX(22px); }
 
+        .btn-remove { position: absolute; top: 0.5rem; right: 0.5rem; color: #64748b; transition: color 0.2s; padding: 2px; }
+        .btn-remove:hover { color: #ef4444; }
+
         .hidden-month { display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.85); z-index: 50; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(8px); }
 
-        /* Título Editável */
         .editable-title-container { cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; gap: 0.5rem; }
         .editable-title-container:hover { opacity: 0.8; }
         .editable-title-container i { opacity: 0; transition: opacity 0.2s; }
@@ -97,7 +98,7 @@
         </footer>
     </div>
 
-    <!-- FAB Gráfico -->
+    <!-- Floating Chart Button -->
     <div class="fab" onclick="openChartModal()">
         <i data-lucide="bar-chart-3"></i>
     </div>
@@ -134,19 +135,19 @@
                     <p class="text-xs text-slate-400 mb-2">Puxar dados de versões salvas no navegador.</p>
                     <button onclick="runSmartMigration()" class="btn btn-warning w-full"><i data-lucide="zap"></i> Migrar Histórico</button>
                 </div>
-                <button onclick="downloadBackup()" class="btn btn-primary w-full"><i data-lucide="download"></i> Baixar Arquivo .JSON</button>
+                <button onclick="downloadBackup()" class="btn btn-primary w-full"><i data-lucide="download"></i> Baixar Backup .JSON</button>
                 <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)">
-                <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full"><i data-lucide="upload"></i> Abrir Backup .JSON</button>
+                <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full"><i data-lucide="upload"></i> Carregar Backup .JSON</button>
             </div>
         </div>
     </div>
 
     <div id="confirm-modal-overlay" class="modal-overlay">
         <div class="card w-full max-w-sm text-center">
-            <h3 class="text-xl font-bold mb-4" id="confirm-title">Atenção</h3>
+            <h3 class="text-xl font-bold mb-4" id="confirm-title">Remover Item?</h3>
             <p class="text-slate-400 mb-6" id="confirm-body"></p>
             <div class="flex justify-center gap-4">
-                <button id="confirm-btn-yes" class="btn btn-primary px-8">Confirmar</button>
+                <button id="confirm-btn-yes" class="btn btn-primary px-8">Remover</button>
                 <button onclick="closeModal('confirm-modal-overlay')" class="btn btn-secondary px-8">Cancelar</button>
             </div>
         </div>
@@ -154,8 +155,8 @@
 
     <script>
         const HORA_EXTRA_RATE = 21;
-        const STORAGE_KEY = 'financialDataApp_v19_final';
-        const TITLE_KEY = 'financialApp_customTitle_v19';
+        const STORAGE_KEY = 'financialDataApp_v21_clean';
+        const TITLE_KEY = 'financialApp_customTitle_v21';
         const MONTH_NAMES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         
         let timeline = [];
@@ -181,12 +182,12 @@
 
         function editAppTitle() {
             const current = document.getElementById('app-display-title').innerText;
-            const nuevo = prompt("Dê um nome para sua planilha:", current);
+            const nuevo = prompt("Nome da sua planilha:", current);
             if (nuevo && nuevo.trim() !== "") {
-                const clean = nuevo.trim();
-                document.getElementById('app-display-title').innerText = clean;
-                document.getElementById('page-title').innerText = clean;
-                localStorage.setItem(TITLE_KEY, clean);
+                const name = nuevo.trim();
+                document.getElementById('app-display-title').innerText = name;
+                document.getElementById('page-title').innerText = name;
+                localStorage.setItem(TITLE_KEY, name);
             }
         }
 
@@ -203,13 +204,13 @@
             const today = new Date().toISOString().slice(0, 10);
             return {
                 incomeEntries: [
-                    { id: 'saldo-' + Math.random(), name: 'Saldo Anterior', value: 0, isSystem: true, date: '' },
+                    { id: 'saldo-sys', name: 'Saldo Anterior', value: 0, isSystem: true, date: '' },
                     { id: Math.random(), name: 'Salário', value: 0, date: today },
                     { id: Math.random(), name: 'Vale', value: 0, date: today },
                     { id: Math.random(), name: 'Hora Extra', isCalculated: true, hours: 0, rate: HORA_EXTRA_RATE, date: today }
                 ],
-                fixedExpenses: [{ id: Math.random(), name: 'Internet/Aluguel', value: 0, isPaid: false, date: today }],
-                variableExpenses: [{ id: Math.random(), name: 'Outros', value: 0, isPaid: false, date: today }]
+                fixedExpenses: [{ id: Math.random(), name: 'Ex: Aluguel', value: 0, isPaid: false, date: today }],
+                variableExpenses: [{ id: Math.random(), name: 'Ex: Mercado', value: 0, isPaid: false, date: today }]
             };
         }
 
@@ -237,7 +238,6 @@
             const container = document.getElementById('planilhas-container');
             container.innerHTML = timeline.map((m, i) => `
                 <div id="container-${i}" class="planilha-mes-container hidden-month space-y-6">
-                    
                     <!-- COCKPIT -->
                     <div class="card bg-slate-800/40 border-blue-500/20">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-6">
@@ -247,35 +247,32 @@
                                     <div id="prog-paid-${i}" class="bg-green-500 h-full transition-all duration-700" style="width: 0%"></div>
                                 </div>
                                 <div class="flex justify-between mt-2">
-                                    <span class="text-xs text-slate-500 font-bold" id="txt-prog-${i}">0% pago</span>
+                                    <span class="text-xs text-slate-500 font-bold" id="txt-prog-${i}">0% concluído</span>
                                     <button onclick="showCashFlow(${i})" class="text-xs text-blue-400 hover:text-white flex items-center gap-1">
-                                        <i data-lucide="calendar" class="w-3 h-3"></i> Detalhes do Fluxo
+                                        <i data-lucide="calendar" class="w-3 h-3"></i> Analisar Fluxo
                                     </button>
                                 </div>
                             </div>
-                            
                             <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
-                                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-center min-w-[130px]">
+                                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-center min-w-[125px]">
                                     <p class="text-[10px] text-slate-500 uppercase font-bold">Entradas</p>
                                     <p class="text-lg font-black text-green-400" id="stat-summary-inc-${i}">R$ 0</p>
                                 </div>
-                                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-center min-w-[130px]">
+                                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-center min-w-[125px]">
                                     <p class="text-[10px] text-slate-500 uppercase font-bold">Saldo restante</p>
                                     <p class="text-lg font-black text-blue-400" id="stat-bal-${i}">R$ 0</p>
                                 </div>
                             </div>
                         </div>
-
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-700/30 text-center">
                             <div><p class="text-[10px] text-slate-500 uppercase font-bold">Total Fixas</p><p class="text-sm font-bold text-blue-300" id="det-fix-${i}">R$ 0</p></div>
                             <div><p class="text-[10px] text-slate-500 uppercase font-bold">Total Variáveis</p><p class="text-sm font-bold text-orange-300" id="det-var-${i}">R$ 0</p></div>
                             <div><p class="text-[10px] text-slate-500 uppercase font-bold text-red-400">Pendente</p><p class="text-sm font-bold text-red-500" id="det-pend-${i}">R$ 0</p></div>
-                            <div><p class="text-[10px] text-slate-500 uppercase font-bold">Planejado Total</p><p class="text-sm font-bold text-white" id="det-tot-${i}">R$ 0</p></div>
+                            <div><p class="text-[10px] text-slate-500 uppercase font-bold">Total Planejado</p><p class="text-sm font-bold text-white" id="det-tot-${i}">R$ 0</p></div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- ENTRADAS -->
                         <div class="card border-l-4 border-green-500 h-fit">
                             <div class="flex justify-between items-center mb-6">
                                 <h3 class="text-lg font-bold flex items-center gap-2 text-green-400"><i data-lucide="wallet"></i> Entradas</h3>
@@ -284,8 +281,6 @@
                             <div id="list-income-${i}" class="space-y-3"></div>
                             <button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Entrada</button>
                         </div>
-
-                        <!-- FIXAS -->
                         <div class="card border-l-4 border-blue-500 h-fit">
                             <div class="flex justify-between items-center mb-6">
                                 <h4 class="text-lg font-bold flex items-center gap-2 text-blue-400"><i data-lucide="lock"></i> Fixas</h4>
@@ -294,8 +289,6 @@
                             <div id="list-fixed-${i}" class="space-y-3"></div>
                             <button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-6">+ Adicionar Fixa</button>
                         </div>
-
-                        <!-- VARIÁVEIS -->
                         <div class="card border-l-4 border-orange-500 h-fit">
                             <div class="flex justify-between items-center mb-6">
                                 <h4 class="text-lg font-bold flex items-center gap-2 text-orange-400"><i data-lucide="shopping-bag"></i> Variáveis</h4>
@@ -323,41 +316,37 @@
             container.innerHTML = items.map(item => {
                 const isPaid = item.isPaid !== undefined ? item.isPaid : true;
                 const statusClass = isPaid ? 'item-paid' : 'item-unpaid';
-                let valField = `<input type="number" step="0.01" value="${item.value || 0}" class="input-field text-sm w-full" onchange="updateValue(${mIdx},'${type}','${item.id}',this.value)" ${item.isCalculated || item.isSystem ? 'readonly' : ''}>`;
                 
+                let valInput = `<input type="number" step="0.01" value="${item.value || 0}" class="input-field text-sm w-full" onchange="updateValue(${mIdx},'${type}','${item.id}',this.value)" ${item.isCalculated || item.isSystem ? 'readonly' : ''}>`;
                 if (item.isCalculated) {
                     const total = (item.hours || 0) * (item.rate || 0);
-                    valField = `<div class="flex gap-1"><input type="number" value="${item.hours || 0}" class="input-field text-xs w-12" onchange="updateProp(${mIdx},'income','${item.id}','hours',this.value)"><div class="input-field text-xs bg-slate-800 flex items-center justify-center font-bold min-w-[70px]">R$ ${total}</div></div>`;
+                    valInput = `<div class="flex gap-1"><input type="number" value="${item.hours || 0}" class="input-field text-xs w-12" onchange="updateProp(${mIdx},'income','${item.id}','hours',this.value)"><div class="input-field text-xs bg-slate-800 flex items-center justify-center font-bold min-w-[70px]">R$ ${total.toFixed(2)}</div></div>`;
                 }
 
                 return `
                 <div class="p-3 rounded-lg item-row ${statusClass}">
-                    <div class="flex justify-between items-center mb-2 gap-2">
+                    ${!item.isSystem ? `<button onclick="removeItem(${mIdx},'${type}','${item.id}')" class="btn-remove" title="Remover"><i data-lucide="x" class="w-4 h-4"></i></button>` : ''}
+                    <div class="flex justify-between items-center mb-2 gap-2 mt-1">
                         <input type="text" value="${item.name}" class="main-text bg-transparent border-none text-sm font-bold w-full focus:ring-0 truncate" onchange="updateProp(${mIdx},'${type}','${item.id}','name',this.value)" ${item.isSystem?'readonly':''}>
-                        ${!item.isSystem ? `<button onclick="removeItem(${mIdx},'${type}','${item.id}')" class="text-slate-500 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="date" value="${item.date||''}" class="input-field text-[10px] p-1 h-9 w-28" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)">
-                        <div class="flex-grow">${valField}</div>
-                        ${item.isPaid!==undefined? `<label class="toggle-switch"><input type="checkbox" ${isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`:''}
+                        <input type="date" value="${item.date||''}" class="input-field text-[10px] p-1 h-9 w-28" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)" ${item.isSystem?'disabled':''}>
+                        <div class="flex-grow">${valInput}</div>
+                        ${item.isPaid!==undefined && !item.isSystem ? `<label class="toggle-switch"><input type="checkbox" ${isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`:''}
+                        ${item.isSystem ? `<div class="w-[42px]"></div>` : ''}
                     </div>
                 </div>`}).join('');
+            lucide.createIcons();
         }
 
-        // --- CORE LÓGICA ---
+        // --- DADOS E CÁLCULOS ---
         function updateProp(mIdx,type,id,p,v) { 
             const l = getL(mIdx,type); const i = l.find(x=>x.id==id); 
-            if(i){ i[p]=(p==='hours'?parseFloat(v):v); saveData(); renderMonthLists(mIdx); }
+            if(i){ i[p]=(p==='hours'?parseFloat(v):v); saveData(); propagateBalances(); timeline.forEach((_, idx) => updateStats(idx)); renderMonthLists(mIdx); }
         }
         function updateValue(mIdx,type,id,v) {
             const l = getL(mIdx,type); const i = l.find(x=>x.id==id);
-            if(i){ 
-                i.value=parseFloat(v)||0; 
-                saveData(); 
-                propagateBalances(); 
-                timeline.forEach((_, idx) => updateStats(idx)); 
-                renderMonthLists(mIdx); 
-            }
+            if(i){ i.value=parseFloat(v)||0; saveData(); propagateBalances(); timeline.forEach((_, idx) => updateStats(idx)); renderMonthLists(mIdx); }
         }
         function togglePaid(mIdx,type,id) {
             const l = getL(mIdx,type); const i = l.find(x=>x.id==id);
@@ -366,13 +355,13 @@
         function addItem(mIdx,type) {
             const l = getL(mIdx,type);
             l.push({ id: Math.random(), name: 'Novo Item', value: 0, date: new Date().toISOString().slice(0,10), isPaid: false });
-            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs(); lucide.createIcons();
+            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
         }
         function removeItem(mIdx,type,id) {
-            customConfirm("Remover item?", "Esta ação não pode ser desfeita.", () => {
+            customConfirm("Remover este item?", "O item será excluído permanentemente da lista deste mês.", () => {
                 const key = type==='income'?'incomeEntries':(type==='fixed'?'fixedExpenses':'variableExpenses');
                 timeline[mIdx].data[key] = timeline[mIdx].data[key].filter(x=>x.id!=id);
-                saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs(); lucide.createIcons();
+                saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
             });
         }
         function getL(mIdx,type) { 
@@ -397,17 +386,15 @@
             } else {
                 timeline[mIdx].data.variableExpenses = cleanData;
             }
-            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs(); lucide.createIcons();
+            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
         }
 
         function propagateBalances() {
             for (let i = 0; i < timeline.length - 1; i++) {
                 const totals = calculateTotalsForData(timeline[i].data);
-                // O valor transportado é sempre Renda - Planejado Total
-                const carryOverBalance = totals.inc - totals.totalT; 
-                
-                let nextMonthSaldoEntry = timeline[i+1].data.incomeEntries.find(x => x.isSystem);
-                if(nextMonthSaldoEntry) nextMonthSaldoEntry.value = carryOverBalance;
+                const carryOver = totals.inc - totals.totalT; 
+                let nextSaldoEntry = timeline[i+1].data.incomeEntries.find(x => x.isSystem);
+                if(nextSaldoEntry) nextSaldoEntry.value = carryOver;
             }
         }
 
@@ -422,32 +409,23 @@
 
         function updateStats(mIdx) {
             const t = calculateTotalsForData(timeline[mIdx].data);
-            
-            // Cockpit: Entradas
-            const elInc = document.getElementById(`stat-summary-inc-${mIdx}`); 
-            if(elInc) elInc.textContent = formatBRL(t.inc);
-            
-            // Cockpit: Saldo Restante (Solicitado: Entrada - Planejado Total)
-            const plannedBalance = t.inc - t.totalT;
+            const elInc = document.getElementById(`stat-summary-inc-${mIdx}`); if(elInc) elInc.textContent = formatBRL(t.inc);
+            const plannedBal = t.inc - t.totalT;
             const elBal = document.getElementById(`stat-bal-${mIdx}`);
             if(elBal) {
-                elBal.textContent = formatBRL(plannedBalance);
-                elBal.className = `text-lg font-black ${plannedBalance>=0?'text-blue-400':'text-red-400'}`;
+                elBal.textContent = formatBRL(plannedBal);
+                elBal.className = `text-lg font-black ${plannedBal>=0?'text-blue-400':'text-red-400'}`;
             }
-
-            // Detalhes Planejados
             const elFix = document.getElementById(`det-fix-${mIdx}`); if(elFix) elFix.textContent = formatBRL(t.fixT);
             const elVar = document.getElementById(`det-var-${mIdx}`); if(elVar) elVar.textContent = formatBRL(t.varT);
             const elPend = document.getElementById(`det-pend-${mIdx}`); if(elPend) elPend.textContent = formatBRL(t.totalT - t.totalP);
             const elTot = document.getElementById(`det-tot-${mIdx}`); if(elTot) elTot.textContent = formatBRL(t.totalT);
-            
-            // Barra de Progresso de Pagamento (Continua mostrando quanto você já pagou do planejado)
             const prog = t.totalT > 0 ? (t.totalP / t.totalT * 100).toFixed(0) : 0;
             const elBar = document.getElementById(`prog-paid-${mIdx}`); if(elBar) elBar.style.width = prog + '%';
-            const elTxt = document.getElementById(`txt-prog-${mIdx}`); if(elTxt) elTxt.textContent = prog + '% pago';
+            const elTxt = document.getElementById(`txt-prog-${mIdx}`); if(elTxt) elTxt.textContent = prog + '% concluído';
         }
 
-        // --- TIMELINE ---
+        // --- UI E MODAIS ---
         function addNewMonthManual() {
             const last = timeline[timeline.length - 1].label;
             const nextIdx = (MONTH_NAMES.indexOf(last) + 1) % 12;
@@ -460,7 +438,7 @@
         }
 
         function advanceTimeline() {
-            customConfirm("Encerrar este mês?", "O primeiro mês da fila será removido permanentemente.", () => {
+            customConfirm("Encerrar este mês?", "Atenção: o primeiro mês será apagado da lista.", () => {
                 timeline.shift();
                 if (timeline.length < 1) createDefaultTimeline();
                 else {
@@ -482,12 +460,9 @@
             if(tab) tab.classList.add('active-month-tab');
         }
 
-        // --- UTILITÁRIOS ---
         function openModal(id) { document.getElementById(id).style.display='flex'; lucide.createIcons(); }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function openChartModal() { openModal('chart-modal-overlay'); setTimeout(updateChart, 100); }
-        function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-
         function customConfirm(title, body, callback) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-body').innerText = body;
@@ -495,23 +470,24 @@
             btn.onclick = () => { closeModal('confirm-modal-overlay'); callback(); };
             openModal('confirm-modal-overlay');
         }
+        function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
         function downloadBackup() {
             const blob = new Blob([JSON.stringify(timeline)], { type: 'application/json' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            a.download = `backup_v19_planejamento.json`; a.click();
+            a.download = `backup_timeline_v21.json`; a.click();
         }
 
         function handleImport(input) {
             const r = new FileReader(); r.onload = e => { 
                 try {
                     timeline = JSON.parse(e.target.result); saveData(); location.reload();
-                } catch(e) { alert("Arquivo inválido."); }
+                } catch(e) { alert("Inválido."); }
             }; r.readAsText(input.files[0]);
         }
 
         function runSmartMigration() {
-            const keys = ['financialDataApp_v18_final_logic','financialDataApp_v17_core','financialDataApp_v16_balance'];
+            const keys = ['financialDataApp_v20_transparent','financialDataApp_v19_final','financialDataApp_v18_final_logic'];
             let found = null; for(let k of keys){ const d = localStorage.getItem(k); if(d){ found=JSON.parse(d); break; } }
             if(!found) return alert("Nenhum dado localizado.");
             timeline = Array.isArray(found) ? found : Object.values(found);
@@ -522,15 +498,15 @@
             const ctx = document.getElementById('globalChart').getContext('2d');
             const labels = timeline.map(m=>m.label);
             const incs = timeline.map(m=>calculateTotalsForData(m.data).inc);
-            const planejado = timeline.map(m=>calculateTotalsForData(m.data).totalT);
+            const exps = timeline.map(m=>calculateTotalsForData(m.data).totalT);
             if(globalChart) globalChart.destroy();
             globalChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Renda', data: incs, backgroundColor: '#3b82f6', borderRadius: 4 }, 
-                        { label: 'Custos Planejados', data: planejado, backgroundColor: '#ef4444', borderRadius: 4 }
+                        { label: 'Entradas', data: incs, backgroundColor: '#3b82f6', borderRadius: 4 }, 
+                        { label: 'Custos Planejados', data: exps, backgroundColor: '#ef4444', borderRadius: 4 }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#334155' } }, x: { grid: { display: false } } }, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
