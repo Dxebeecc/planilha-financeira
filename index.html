@@ -9,7 +9,6 @@
 
     <title>Finanças Pro - Timeline</title>
     
-    <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +16,7 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; scroll-behavior: smooth; }
-        .card { background-color: #1e293b; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); padding: 1.5rem; border: 1px solid #334155; transition: transform 0.2s; }
+        .card { background-color: #1e293b; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); padding: 1.5rem; border: 1px solid #334155; }
         .input-field { background-color: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.6rem 0.8rem; width: 100%; transition: all 0.2s; }
         .input-field:focus { outline: none; border-color: #3b82f6; ring: 2px; ring-color: #3b82f6; }
         .unpaid-value { text-decoration: line-through; opacity: 0.5; }
@@ -29,11 +28,11 @@
         .btn-secondary:hover { background-color: #475569; }
         .btn-danger { background-color: #ef4444; color: white; }
         .btn-success { background-color: #10b981; color: white; }
+        .btn-warning { background-color: #f59e0b; color: white; }
 
         .month-tab { position: relative; padding: 1rem; border-bottom: 3px solid transparent; transition: all 0.3s; opacity: 0.6; cursor: pointer; background: transparent; color: inherit; }
         .active-month-tab { opacity: 1; border-bottom-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
 
-        /* Toggle Switch Custom */
         .toggle-switch { position: relative; display: inline-flex; width: 44px; height: 22px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
@@ -42,43 +41,31 @@
         input:checked + .slider:before { transform: translateX(22px); }
 
         .hidden-month { display: none; }
-        ::-webkit-scrollbar { height: 4px; width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        #save-indicator { position: fixed; top: 20px; right: 20px; z-index: 100; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div id="save-indicator" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
-        <i data-lucide="check-circle" class="w-4 h-4"></i> Salvo
-    </div>
-
     <div class="max-w-6xl mx-auto">
-        <!-- Cabeçalho -->
+        <!-- Header -->
         <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
             <div>
                 <h1 class="text-3xl font-extrabold text-white flex items-center gap-2 justify-center md:justify-start">
                     <i data-lucide="layers" class="text-blue-500"></i> Finanças Timeline
                 </h1>
-                <p class="text-slate-400">Controle de Fluxo Semestral Contínuo</p>
+                <p class="text-slate-400">Controle de Fluxo Contínuo</p>
             </div>
             <div class="flex flex-wrap justify-center gap-2">
                 <button onclick="advanceTimeline()" class="btn btn-primary text-sm shadow-lg shadow-blue-500/20">
-                    <i data-lucide="fast-forward" class="w-4 h-4"></i> Encerrar Mês
+                    <i data-lucide="fast-forward"></i> Encerrar Mês
                 </button>
                 <button onclick="openModal('backup-modal-overlay')" class="btn btn-secondary text-sm">
-                    <i data-lucide="database" class="w-4 h-4"></i> Backup
-                </button>
-                <button onclick="configurarNomesMeses()" class="btn btn-secondary text-sm">
-                    <i data-lucide="edit-3" class="w-4 h-4"></i> Nomes
+                    <i data-lucide="database"></i> Backup / Migrar
                 </button>
             </div>
         </header>
 
-        <!-- Dashboard de Gráfico -->
+        <!-- Dashboard -->
         <div class="card mb-8">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
                 <i data-lucide="line-chart" class="text-blue-400"></i> Panorama Semestral
@@ -86,13 +73,12 @@
             <div class="h-64"><canvas id="globalChart"></canvas></div>
         </div>
 
-        <!-- Abas de Navegação -->
+        <!-- Abas -->
         <div class="flex overflow-x-auto border-b border-slate-700 mb-8 no-scrollbar" id="month-tabs-container"></div>
 
-        <!-- Conteúdo dos Meses -->
+        <!-- Conteúdo -->
         <div id="planilhas-container"></div>
 
-        <!-- Rodapé com ações -->
         <footer class="mt-12 mb-8 border-t border-slate-700 pt-8 text-center flex flex-col md:flex-row justify-center gap-4">
             <button onclick="exportCurrentMonthCSV()" class="btn btn-success">
                 <i data-lucide="file-spreadsheet"></i> Exportar Mês Atual (CSV)
@@ -111,20 +97,29 @@
         </div>
     </div>
 
-    <!-- Modal Backup -->
+    <!-- Modal Backup / Migração -->
     <div id="backup-modal-overlay" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="card w-full max-w-md">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="save"></i> Backup e Restauração</h2>
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="refresh-cw"></i> Gestão de Dados</h2>
                 <button onclick="closeModal('backup-modal-overlay')" class="p-2 hover:bg-slate-700 rounded-full"><i data-lucide="x"></i></button>
             </div>
             <div class="space-y-4">
+                <!-- Seção de Recuperação -->
+                <div class="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <h3 class="font-bold text-blue-400 mb-1">Migrar da Planilha Antiga</h3>
+                    <p class="text-xs text-slate-400 mb-3">Tenta recuperar dados das versões que não tinham botão de backup.</p>
+                    <button onclick="runSmartMigration()" class="btn btn-warning w-full">
+                        <i data-lucide="zap"></i> Recuperar Dados Antigos
+                    </button>
+                </div>
+
                 <div class="p-4 bg-slate-800 rounded-lg">
-                    <p class="text-xs text-slate-400 mb-3">Baixe seus dados para segurança.</p>
+                    <p class="text-xs text-slate-400 mb-3">Baixe o backup JSON para mover entre aparelhos.</p>
                     <button onclick="downloadBackup()" class="btn btn-primary w-full"><i data-lucide="download"></i> Baixar Backup .JSON</button>
                 </div>
-                <div class="p-4 bg-slate-800 rounded-lg">
-                    <p class="text-xs text-slate-400 mb-3">Carregue dados de outro dispositivo.</p>
+
+                <div class="p-4 bg-slate-800 rounded-lg text-center">
                     <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)">
                     <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full"><i data-lucide="upload"></i> Carregar Backup .JSON</button>
                 </div>
@@ -133,28 +128,20 @@
     </div>
 
     <script>
-        // --- CONSTANTES E ESTADO ---
         const HORA_EXTRA_RATE = 21;
         const STORAGE_KEY = 'financialDataApp_v7_timeline';
         
-        let timeline = []; // Estrutura: [{ label: string, data: object }]
+        let timeline = [];
         let activeIndex = 0;
         let globalChart = null;
 
-        // --- INICIALIZAÇÃO ---
         function initApp() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 timeline = JSON.parse(saved);
-                // Migração de dados antigos se necessário ou verificação de integridade básica
-                if (timeline.length < 6) { 
-                    // Garante que sempre temos 6 meses
-                    while(timeline.length < 6) addNextMonth();
-                }
             } else {
                 createDefaultTimeline();
             }
-            
             renderTabs();
             renderMonths();
             updateChart();
@@ -164,15 +151,10 @@
 
         function createDefaultTimeline() {
             const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            let startMonthIdx = new Date().getMonth();
-            
+            let startIdx = new Date().getMonth();
             timeline = [];
             for (let i = 0; i < 6; i++) {
-                const idx = (startMonthIdx + i) % 12;
-                timeline.push({
-                    label: monthNames[idx],
-                    data: createEmptyMonthData()
-                });
+                timeline.push({ label: monthNames[(startIdx + i) % 12], data: createEmptyMonthData() });
             }
             saveData();
         }
@@ -186,97 +168,88 @@
                     { id: Math.random(), name: 'Vale', value: 0, date: today },
                     { id: Math.random(), name: 'Hora Extra', isCalculated: true, hours: 0, rate: HORA_EXTRA_RATE, date: today }
                 ],
-                fixedExpenses: [
-                    { id: Math.random(), name: 'Internet', value: 0, isPaid: true, date: today },
-                    { id: Math.random(), name: 'Energia', value: 0, isPaid: true, date: today }
-                ],
-                variableExpenses: [
-                    { id: Math.random(), name: 'Cartão de Crédito', value: 0, isPaid: true, date: today }
-                ]
+                fixedExpenses: [{ id: Math.random(), name: 'Internet', value: 0, isPaid: true, date: today }],
+                variableExpenses: [{ id: Math.random(), name: 'Outros', value: 0, isPaid: true, date: today }]
             };
         }
 
-        // --- SISTEMA DE TIMELINE DINÂMICA ---
-
-        function advanceTimeline() {
-            const currentMonthName = timeline[0].label;
-            const confirmMsg = `Deseja encerrar o mês de "${currentMonthName}"?\n\nO sistema irá apagar os dados deste mês, mover os próximos para frente e criar um novo mês no final da lista.`;
+        // --- MIGRADO INTELIGENTE (RESOLVE SEU PROBLEMA) ---
+        function runSmartMigration() {
+            const oldKeys = [
+                'financialDataApp_semestral_v1', 
+                'financialDataApp_cashflow_v1', 
+                'financialDataApp_final', 
+                'financialDataApp_autoSave_v2'
+            ];
             
-            if (!confirm(confirmMsg)) return;
+            let foundOldData = null;
+            let foundLabels = null;
 
-            // Remove o mês mais antigo
-            timeline.shift();
-
-            // Adiciona um novo mês no final
-            addNextMonth();
-
-            // Recalcula todos os saldos transportados
-            propagateBalances();
-            
-            saveData();
-            location.reload(); // Recarrega para reconstruir a UI limpa
-        }
-
-        function addNextMonth() {
-            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            const lastMonthLabel = timeline[timeline.length - 1].label;
-            const nextIdx = (monthNames.indexOf(lastMonthLabel) + 1) % 12;
-            
-            timeline.push({
-                label: monthNames[nextIdx],
-                data: createEmptyMonthData()
-            });
-        }
-
-        // --- PERSISTÊNCIA E CÁLCULO ---
-
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(timeline));
-            updateChart();
-            showSaveIndicator();
-        }
-
-        function showSaveIndicator() {
-            const el = document.getElementById('save-indicator');
-            el.style.opacity = '1';
-            setTimeout(() => { el.style.opacity = '0'; }, 1500);
-        }
-
-        function propagateBalances() {
-            for (let i = 0; i < timeline.length - 1; i++) {
-                const totals = calculateTotalsForData(timeline[i].data);
-                const nextMonth = timeline[i+1];
-                let saldoEntry = nextMonth.data.incomeEntries.find(e => e.isSystem);
-                
-                if (!saldoEntry) {
-                    saldoEntry = { id: 'saldo-' + Math.random(), name: 'Saldo Anterior', value: 0, isSystem: true, date: '' };
-                    nextMonth.data.incomeEntries.unshift(saldoEntry);
+            for (const key of oldKeys) {
+                const data = localStorage.getItem(key);
+                const labels = localStorage.getItem(key.replace('financialData', 'monthLabels'));
+                if (data && labels) {
+                    foundOldData = JSON.parse(data);
+                    foundLabels = JSON.parse(labels);
+                    console.log("Dados antigos encontrados na chave:", key);
+                    break;
                 }
-                saldoEntry.value = totals.balance;
+            }
+
+            if (!foundOldData) {
+                alert("Não encontrei dados de versões anteriores no seu navegador.");
+                return;
+            }
+
+            if (!confirm("Encontrei dados antigos! Deseja converter e importar para a nova Timeline?\n\nIsso irá substituir os dados atuais da tela.")) return;
+
+            try {
+                const newTimeline = [];
+                // As versões antigas usavam chaves 'month1', 'month2', etc.
+                const monthKeys = ['month1', 'month2', 'month3', 'month4', 'month5', 'month6'];
+                
+                monthKeys.forEach((mKey, idx) => {
+                    const oldMonth = foundOldData[mKey];
+                    if (oldMonth) {
+                        newTimeline.push({
+                            label: foundLabels[idx] || `Mês ${idx + 1}`,
+                            data: {
+                                incomeEntries: oldMonth.incomeEntries.map(i => ({ ...i, id: i.id || Math.random() })),
+                                // Mapeia nomes de campos antigos para novos
+                                fixedExpenses: (oldMonth.fixedExpensesEntries || oldMonth.fixedExpenses || []).map(i => ({ ...i, id: i.id || Math.random() })),
+                                variableExpenses: (oldMonth.variableExpensesEntries || oldMonth.variableExpenses || []).map(i => ({ ...i, id: i.id || Math.random() }))
+                            }
+                        });
+                    }
+                });
+
+                if (newTimeline.length > 0) {
+                    timeline = newTimeline;
+                    saveData();
+                    alert("Migração concluída com sucesso!");
+                    location.reload();
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erro durante a migração. Estrutura de dados incompatível.");
             }
         }
 
-        function calculateTotalsForData(data) {
-            const inc = data.incomeEntries.reduce((s, i) => s + (i.isCalculated ? (i.hours * i.rate) : (i.value || 0)), 0);
-            const expFixed = data.fixedExpenses.reduce((s, i) => s + (i.isPaid ? (i.value || 0) : 0), 0);
-            const expVar = data.variableExpenses.reduce((s, i) => s + (i.isPaid ? (i.value || 0) : 0), 0);
-            const totalExp = expFixed + expVar;
-            return { inc, exp: totalExp, balance: inc - totalExp };
+        // --- FUNÇÕES DA PLANILHA ---
+        function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(timeline)); updateChart(); }
+        function selecionarMes(idx) {
+            activeIndex = idx;
+            document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.add('hidden-month'));
+            document.getElementById(`container-${idx}`).classList.remove('hidden-month');
+            document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active-month-tab'));
+            document.getElementById(`tab-${idx}`).classList.add('active-month-tab');
         }
-
-        // --- INTERFACE (DOM) ---
 
         function renderTabs() {
             const container = document.getElementById('month-tabs-container');
-            container.innerHTML = timeline.map((m, i) => {
-                const hasUnpaid = [...m.data.fixedExpenses, ...m.data.variableExpenses].some(e => !e.isPaid);
-                return `
-                    <button onclick="selecionarMes(${i})" id="tab-${i}" class="month-tab flex items-center gap-2 whitespace-nowrap">
-                        ${m.label}
-                        ${hasUnpaid ? '<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>' : ''}
-                    </button>
-                `;
-            }).join('');
+            container.innerHTML = timeline.map((m, i) => `
+                <button onclick="selecionarMes(${i})" id="tab-${i}" class="month-tab whitespace-nowrap">${m.label}</button>
+            `).join('');
         }
 
         function renderMonths() {
@@ -284,61 +257,38 @@
             container.innerHTML = timeline.map((m, i) => `
                 <div id="container-${i}" class="planilha-mes-container hidden-month">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- COLUNA 1: ENTRADAS -->
-                        <div class="space-y-6">
-                            <div class="card border-l-4 border-green-500">
-                                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-green-400">
-                                    <i data-lucide="arrow-down-to-line"></i> Entradas
-                                </h3>
-                                <div id="list-income-${i}" class="space-y-4"></div>
-                                <div class="mt-4 flex gap-2">
-                                    <button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm flex-grow"><i data-lucide="plus" class="w-4 h-4"></i> Novo</button>
-                                    ${i > 0 ? `<button onclick="copyStructure(${i}, 'income')" class="btn btn-secondary btn-sm" title="Copiar do mês anterior"><i data-lucide="copy" class="w-4 h-4"></i></button>` : ''}
-                                </div>
-                                <div class="mt-6 pt-4 border-t border-slate-700">
-                                    <p class="text-slate-400 text-sm uppercase font-bold">Total Recebido</p>
-                                    <p class="text-2xl font-black text-green-400" id="stat-inc-${i}">R$ 0,00</p>
-                                </div>
+                        <div class="card border-l-4 border-green-500">
+                            <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="plus-circle"></i> Entradas</h3>
+                            <div id="list-income-${i}" class="space-y-4"></div>
+                            <button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm w-full mt-4">+ Adicionar</button>
+                            <div class="mt-6 pt-4 border-t border-slate-700">
+                                <p class="text-2xl font-black text-green-400" id="stat-inc-${i}">R$ 0,00</p>
                             </div>
                         </div>
-
-                        <!-- COLUNA 2 E 3: DESPESAS E FLUXO -->
                         <div class="lg:col-span-2 space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="card bg-red-500/5 border-red-500/20 text-center py-4">
-                                    <p class="text-xs text-slate-400 uppercase font-bold">Total Pago</p>
+                                <div class="card bg-red-500/5 text-center py-4">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Total Pago</p>
                                     <p class="text-2xl font-black text-red-400" id="stat-exp-${i}">R$ 0,00</p>
                                 </div>
-                                <div class="card bg-blue-500/5 border-blue-500/20 text-center py-4">
-                                    <p class="text-xs text-slate-400 uppercase font-bold">Saldo Livre</p>
+                                <div class="card bg-blue-500/5 text-center py-4">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Saldo</p>
                                     <p class="text-2xl font-black text-blue-400" id="stat-bal-${i}">R$ 0,00</p>
                                 </div>
                             </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- FIXAS -->
                                 <div class="card border-l-4 border-blue-500">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h4 class="font-bold flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-blue-400"></i> Fixas</h4>
-                                        ${i > 0 ? `<button onclick="copyStructure(${i}, 'fixed')" class="text-slate-500 hover:text-white"><i data-lucide="copy" class="w-3 h-3"></i></button>` : ''}
-                                    </div>
+                                    <h4 class="font-bold mb-4">Fixas</h4>
                                     <div id="list-fixed-${i}" class="space-y-3"></div>
-                                    <button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-4"><i data-lucide="plus" class="w-4 h-4"></i> Adicionar</button>
+                                    <button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-4">+ Adicionar</button>
                                 </div>
-                                <!-- VARIÁVEIS -->
                                 <div class="card border-l-4 border-orange-500">
-                                    <h4 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-orange-400"></i> Variáveis</h4>
+                                    <h4 class="font-bold mb-4">Variáveis</h4>
                                     <div id="list-variable-${i}" class="space-y-3"></div>
-                                    <button onclick="addItem(${i}, 'variable')" class="btn btn-secondary btn-sm w-full mt-4"><i data-lucide="plus" class="w-4 h-4"></i> Adicionar</button>
+                                    <button onclick="addItem(${i}, 'variable')" class="btn btn-secondary btn-sm w-full mt-4">+ Adicionar</button>
                                 </div>
                             </div>
-
-                            <div class="flex justify-center pt-4">
-                                <button onclick="showCashFlow(${i})" class="btn btn-primary px-10 shadow-lg shadow-blue-500/10">
-                                    <i data-lucide="calendar"></i> Analisar Fluxo do Mês
-                                </button>
-                            </div>
+                            <div class="flex justify-center"><button onclick="showCashFlow(${i})" class="btn btn-primary px-10">Ver Fluxo de Caixa</button></div>
                         </div>
                     </div>
                 </div>
@@ -351,7 +301,7 @@
                 renderItemList(i, 'income', m.data.incomeEntries);
                 renderItemList(i, 'fixed', m.data.fixedExpenses);
                 renderItemList(i, 'variable', m.data.variableExpenses);
-                updateStatsDisplay(i);
+                updateStats(i);
             });
             lucide.createIcons();
         }
@@ -359,264 +309,125 @@
         function renderItemList(mIdx, type, items) {
             const container = document.getElementById(`list-${type}-${mIdx}`);
             if (!container) return;
-
-            container.innerHTML = items.map(item => {
-                const isPaid = item.isPaid !== undefined ? item.isPaid : true;
-                const isSystem = item.isSystem;
-                
-                let valueField = `<input type="number" step="0.01" value="${item.value || 0}" class="input-field text-sm ${!isPaid ? 'unpaid-value' : ''}" onchange="updateItemValue(${mIdx}, '${type}', '${item.id}', this.value)" ${isSystem ? 'readonly' : ''}>`;
-                
-                if (item.isCalculated) {
-                    const total = (item.hours || 0) * (item.rate || 0);
-                    valueField = `
-                        <div class="flex gap-1">
-                            <input type="number" value="${item.hours || 0}" placeholder="Hs" class="input-field text-xs w-14" onchange="updateItemProp(${mIdx}, 'income', '${item.id}', 'hours', this.value)">
-                            <div class="input-field text-xs bg-slate-800 flex items-center justify-center font-bold min-w-[70px]">R$ ${total}</div>
-                        </div>`;
-                }
-
-                return `
-                    <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
-                        <div class="flex justify-between items-center mb-2 gap-2">
-                            <input type="text" value="${item.name}" class="bg-transparent border-none text-sm font-semibold w-full focus:ring-0" onchange="updateItemProp(${mIdx}, '${type}', '${item.id}', 'name', this.value)" ${isSystem ? 'readonly' : ''}>
-                            ${!isSystem ? `<button onclick="removeItem(${mIdx}, '${type}', '${item.id}')" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="date" value="${item.date || ''}" class="input-field text-xs p-1 h-9 w-32" onchange="updateItemProp(${mIdx}, '${type}', '${item.id}', 'date', this.value)">
-                            <div class="flex-grow">${valueField}</div>
-                            ${item.isPaid !== undefined ? `
-                                <label class="toggle-switch">
-                                    <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="togglePaidStatus(${mIdx}, '${type}', '${item.id}')">
-                                    <span class="slider"></span>
-                                </label>` : ''}
-                        </div>
-                    </div>`;
-            }).join('');
+            container.innerHTML = items.map(item => `
+                <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+                    <div class="flex justify-between items-center mb-2 gap-2">
+                        <input type="text" value="${item.name}" class="bg-transparent border-none text-sm font-semibold w-full focus:ring-0" onchange="updateProp(${mIdx},'${type}','${item.id}','name',this.value)" ${item.isSystem?'readonly':''}>
+                        ${!item.isSystem ? `<button onclick="removeItem(${mIdx},'${type}','${item.id}')" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="date" value="${item.date||''}" class="input-field text-xs p-1 h-9 w-32" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)">
+                        <input type="number" step="0.01" value="${item.isCalculated? (item.hours*item.rate) : item.value||0}" class="input-field text-sm ${item.isPaid===false?'unpaid-value':''}" onchange="updateValue(${mIdx},'${type}','${item.id}',this.value)" ${item.isCalculated||item.isSystem?'readonly':''}>
+                        ${item.isPaid!==undefined? `<label class="toggle-switch"><input type="checkbox" ${item.isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`:''}
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // --- FUNÇÕES DE INTERAÇÃO ---
-
-        function updateItemProp(mIdx, type, id, prop, val) {
-            const list = getListByType(mIdx, type);
-            const item = list.find(i => i.id == id);
-            if (item) {
-                item[prop] = (prop === 'hours') ? parseFloat(val) : val;
-                saveData();
-                renderAllLists();
-            }
+        function updateProp(mIdx,type,id,prop,val) {
+            const list = getL(mIdx,type); const item = list.find(i=>i.id==id);
+            if(item) { item[prop]=val; saveData(); renderAllLists(); }
         }
-
-        function updateItemValue(mIdx, type, id, val) {
-            const list = getListByType(mIdx, type);
-            const item = list.find(i => i.id == id);
-            if (item) {
-                item.value = parseFloat(val) || 0;
-                saveData();
-                propagateBalances(); // Se mudar valor, altera saldos futuros
-                renderAllLists();
-            }
+        function updateValue(mIdx,type,id,val) {
+            const list = getL(mIdx,type); const item = list.find(i=>i.id==id);
+            if(item) { item.value=parseFloat(val)||0; saveData(); propagateBalances(); renderAllLists(); }
         }
-
-        function togglePaidStatus(mIdx, type, id) {
-            const list = getListByType(mIdx, type);
-            const item = list.find(i => i.id == id);
-            if (item) {
-                item.isPaid = !item.isPaid;
-                saveData();
-                propagateBalances();
-                renderAllLists();
-                renderTabs();
-                lucide.createIcons();
-            }
+        function togglePaid(mIdx,type,id) {
+            const list = getL(mIdx,type); const item = list.find(i=>i.id==id);
+            if(item) { item.isPaid=!item.isPaid; saveData(); propagateBalances(); renderAllLists(); }
         }
-
-        function addItem(mIdx, type) {
-            const list = getListByType(mIdx, type);
-            const newItem = {
-                id: Math.random(),
-                name: 'Novo Item',
-                value: 0,
-                date: new Date().toISOString().slice(0, 10)
-            };
-            if (type !== 'income') newItem.isPaid = true;
-            list.push(newItem);
-            saveData();
-            renderAllLists();
+        function addItem(mIdx,type) {
+            const list = getL(mIdx,type);
+            list.push({ id: Math.random(), name: 'Novo Item', value: 0, date: new Date().toISOString().slice(0,10), isPaid: type!=='income' });
+            saveData(); renderAllLists();
         }
-
-        function removeItem(mIdx, type, id) {
-            if (!confirm('Excluir este item?')) return;
-            const data = timeline[mIdx].data;
-            if (type === 'income') data.incomeEntries = data.incomeEntries.filter(i => i.id != id);
-            else if (type === 'fixed') data.fixedExpenses = data.fixedExpenses.filter(i => i.id != id);
-            else data.variableExpenses = data.variableExpenses.filter(i => i.id != id);
-            saveData();
-            propagateBalances();
-            renderAllLists();
+        function removeItem(mIdx,type,id) {
+            const key = type==='income'?'incomeEntries':(type==='fixed'?'fixedExpenses':'variableExpenses');
+            timeline[mIdx].data[key] = timeline[mIdx].data[key].filter(i=>i.id!=id);
+            saveData(); propagateBalances(); renderAllLists();
         }
-
-        function copyStructure(mIdx, type) {
-            if (mIdx === 0) return;
-            const key = type === 'income' ? 'incomeEntries' : 'fixedExpenses';
-            const prevData = JSON.parse(JSON.stringify(timeline[mIdx-1].data[key]));
-            
-            const cleanData = prevData.map(item => {
-                if (!item.isSystem) item.id = Math.random();
-                return item;
-            });
-
-            if (type === 'income') {
-                const system = timeline[mIdx].data.incomeEntries.filter(i => i.isSystem);
-                const user = cleanData.filter(i => !i.isSystem);
-                timeline[mIdx].data.incomeEntries = [...system, ...user];
-            } else {
-                timeline[mIdx].data.fixedExpenses = cleanData;
-            }
-            saveData();
-            propagateBalances();
-            renderAllLists();
-        }
-
-        function getListByType(mIdx, type) {
+        function getL(mIdx,type) { 
             const d = timeline[mIdx].data;
-            if (type === 'income') return d.incomeEntries;
-            if (type === 'fixed') return d.fixedExpenses;
-            return d.variableExpenses;
+            return type==='income'?d.incomeEntries:(type==='fixed'?d.fixedExpenses:d.variableExpenses);
         }
 
-        function updateStatsDisplay(mIdx) {
+        function propagateBalances() {
+            for (let i = 0; i < timeline.length - 1; i++) {
+                const t = calculateTotalsForData(timeline[i].data);
+                let s = timeline[i+1].data.incomeEntries.find(e => e.isSystem);
+                if(s) s.value = t.balance;
+            }
+        }
+
+        function calculateTotalsForData(d) {
+            const inc = d.incomeEntries.reduce((s, i) => s + (i.isCalculated ? (i.hours * i.rate) : (i.value || 0)), 0);
+            const expF = d.fixedExpenses.reduce((s, i) => s + (i.isPaid ? i.value : 0), 0);
+            const expV = d.variableExpenses.reduce((s, i) => s + (i.isPaid ? i.value : 0), 0);
+            return { inc, exp: expF+expV, balance: inc - (expF+expV) };
+        }
+
+        function updateStats(mIdx) {
             const t = calculateTotalsForData(timeline[mIdx].data);
             document.getElementById(`stat-inc-${mIdx}`).textContent = formatBRL(t.inc);
             document.getElementById(`stat-exp-${mIdx}`).textContent = formatBRL(t.exp);
-            const bEl = document.getElementById(`stat-bal-${mIdx}`);
-            bEl.textContent = formatBRL(t.balance);
-            bEl.className = `text-2xl font-black ${t.balance >= 0 ? 'text-blue-400' : 'text-red-400'}`;
-        }
-
-        // --- NAVEGAÇÃO E UI ---
-
-        function selecionarMes(idx) {
-            activeIndex = idx;
-            document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.add('hidden-month'));
-            document.getElementById(`container-${idx}`).classList.remove('hidden-month');
-            document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active-month-tab'));
-            document.getElementById(`tab-${idx}`).classList.add('active-month-tab');
-        }
-
-        function configurarNomesMeses() {
-            timeline.forEach((m, i) => {
-                const n = prompt(`Nome do Mês ${i+1}:`, m.label);
-                if (n) m.label = n;
-            });
-            saveData();
-            renderTabs();
-            updateChart();
-            selecionarMes(activeIndex);
+            const b = document.getElementById(`stat-bal-${mIdx}`);
+            b.textContent = formatBRL(t.balance);
+            b.className = `text-2xl font-black ${t.balance>=0?'text-blue-400':'text-red-400'}`;
         }
 
         function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // --- BACKUP ---
+        function openModal(id) { document.getElementById(id).style.display='flex'; }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
 
         function downloadBackup() {
-            const dataStr = JSON.stringify(timeline);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup_timeline_${new Date().toLocaleDateString()}.json`;
-            a.click();
+            const blob = new Blob([JSON.stringify(timeline)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = `backup_timeline.json`; a.click();
         }
-
         function handleImport(input) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (Array.isArray(data)) {
-                        timeline = data;
-                        saveData();
-                        location.reload();
-                    }
-                } catch(err) { alert('Erro ao carregar arquivo de backup.'); }
-            };
-            reader.readAsText(input.files[0]);
+            const r = new FileReader(); r.onload = e => { 
+                timeline = JSON.parse(e.target.result); saveData(); location.reload();
+            }; r.readAsText(input.files[0]);
         }
 
-        // --- GRÁFICOS ---
+        function advanceTimeline() {
+            if(!confirm("Encerrar este mês?")) return;
+            timeline.shift();
+            const names = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+            const last = timeline[timeline.length-1].label;
+            timeline.push({ label: `Mês Novo`, data: createEmptyMonthData() });
+            saveData(); propagateBalances(); location.reload();
+        }
+
         function updateChart() {
             const ctx = document.getElementById('globalChart').getContext('2d');
-            const labels = timeline.map(m => m.label);
-            const incomes = timeline.map(m => calculateTotalsForData(m.data).inc);
-            const expenses = timeline.map(m => calculateTotalsForData(m.data).exp);
-
-            if (globalChart) globalChart.destroy();
+            const incs = timeline.map(m => calculateTotalsForData(m.data).inc);
+            const exps = timeline.map(m => calculateTotalsForData(m.data).exp);
+            if(globalChart) globalChart.destroy();
             globalChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Entradas', data: incomes, backgroundColor: '#10b981', borderRadius: 5 },
-                        { label: 'Despesas', data: expenses, backgroundColor: '#ef4444', borderRadius: 5 }
-                    ]
+                    labels: timeline.map(m=>m.label),
+                    datasets: [{ label: 'Ganhos', data: incs, backgroundColor: '#10b981' }, { label: 'Gastos', data: exps, backgroundColor: '#ef4444' }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                    },
-                    plugins: { legend: { labels: { color: '#f1f5f9' } } }
-                }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        // --- FLUXO DE CAIXA ---
         function showCashFlow(idx) {
             const m = timeline[idx];
             const entries = [
-                ...m.data.incomeEntries.map(i => ({ ...i, type: 'IN', val: i.isCalculated ? i.hours * i.rate : i.value })),
-                ...m.data.fixedExpenses.filter(e => e.isPaid).map(i => ({ ...i, type: 'OUT', val: -i.value })),
-                ...m.data.variableExpenses.filter(e => e.isPaid).map(i => ({ ...i, type: 'OUT', val: -i.value }))
-            ].sort((a, b) => new Date(a.date || '9999-12-31') - new Date(b.date || '9999-12-31'));
-
-            let running = 0;
-            const rows = entries.map(e => {
-                running += e.val;
-                return `
-                    <tr class="text-sm border-b border-slate-700">
-                        <td class="py-3 px-2 text-slate-400">${e.date ? new Date(e.date + 'T00:00:00').toLocaleDateString('pt-BR') : '--'}</td>
-                        <td class="py-3 px-2 font-medium">${e.name}</td>
-                        <td class="py-3 px-2 text-right ${e.type === 'IN' ? 'text-green-400' : 'text-red-400'}">${formatBRL(e.val)}</td>
-                        <td class="py-3 px-2 text-right font-bold ${running < 0 ? 'text-red-500' : 'text-blue-400'}">${formatBRL(running)}</td>
-                    </tr>`;
-            }).join('');
-
+                ...m.data.incomeEntries.map(i => ({ ...i, val: i.isCalculated?i.hours*i.rate:i.value, type:'IN' })),
+                ...m.data.fixedExpenses.filter(e=>e.isPaid).map(i => ({ ...i, val: -i.value, type:'OUT' })),
+                ...m.data.variableExpenses.filter(e=>e.isPaid).map(i => ({ ...i, val: -i.value, type:'OUT' }))
+            ].sort((a,b) => new Date(a.date||'9999') - new Date(b.date||'9999'));
+            let run = 0;
             document.getElementById('cashflow-content').innerHTML = `
-                <table class="w-full">
-                    <thead><tr class="text-left text-xs uppercase text-slate-500"><th class="px-2">Data</th><th class="px-2">Item</th><th class="px-2 text-right">Valor</th><th class="px-2 text-right">Acumulado</th></tr></thead>
-                    <tbody>${rows}</tbody>
+                <table class="w-full text-left">
+                    <thead><tr class="text-xs uppercase text-slate-500"><th>Data</th><th>Item</th><th class="text-right">Valor</th><th class="text-right">Saldo</th></tr></thead>
+                    <tbody>${entries.map(e=>{ run+=e.val; return `<tr class="border-b border-slate-700 text-sm"><td class="py-2">${e.date||'-'}</td><td>${e.name}</td><td class="text-right ${e.type==='IN'?'text-green-400':'text-red-400'}">${formatBRL(e.val)}</td><td class="text-right font-bold">${formatBRL(run)}</td></tr>`}).join('')}</tbody>
                 </table>`;
-            document.getElementById('cashflow-title').innerText = `Fluxo de Caixa: ${m.label}`;
             openModal('cashflow-modal-overlay');
-            lucide.createIcons();
-        }
-
-        function exportCurrentMonthCSV() {
-            const m = timeline[activeIndex];
-            let csv = "Tipo;Data;Descricao;Valor;Status\n";
-            const add = (t, l) => l.forEach(i => csv += `${t};${i.date || ''};${i.name};${i.isCalculated ? i.hours*i.rate : i.value};${i.isPaid === false ? 'Pendente' : 'OK'}\n`);
-            add('Entrada', m.data.incomeEntries);
-            add('Fixa', m.data.fixedExpenses);
-            add('Variavel', m.data.variableExpenses);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `financeiro_${m.label}.csv`;
-            a.click();
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
