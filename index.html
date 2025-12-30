@@ -77,7 +77,7 @@
             </div>
         </header>
 
-        <!-- Navegação de Meses -->
+        <!-- Navegação -->
         <div class="flex items-center border-b border-slate-700 mb-8 overflow-hidden bg-slate-900/30 rounded-t-lg">
             <div class="flex overflow-x-auto no-scrollbar flex-grow" id="month-tabs-container"></div>
             <div onclick="addNewMonthManual()" class="px-4 text-slate-400 hover:text-blue-500 cursor-pointer border-l border-slate-700" title="Adicionar Mês">
@@ -94,6 +94,7 @@
         </footer>
     </div>
 
+    <!-- FAB Gráfico -->
     <div class="fab" onclick="openChartModal()">
         <i data-lucide="bar-chart-3"></i>
     </div>
@@ -126,7 +127,7 @@
                 <button onclick="closeModal('backup-modal-overlay')" class="p-2 hover:bg-slate-700 rounded-full"><i data-lucide="x"></i></button>
             </div>
             <div class="space-y-4">
-                <p class="text-xs text-slate-400">Dados salvos apenas neste navegador. Use o backup para mover entre dispositivos.</p>
+                <p class="text-xs text-slate-400">Dados locais. Use o arquivo para mover entre dispositivos.</p>
                 <button onclick="downloadBackup()" class="btn btn-primary w-full"><i data-lucide="download"></i> Guardar Backup</button>
                 <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)">
                 <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full"><i data-lucide="upload"></i> Carregar Backup</button>
@@ -178,6 +179,15 @@
             setTimeout(() => { indicator.style.display = 'none'; }, 2000);
         }
 
+        // FUNÇÃO CRUCIAL: Atualiza a interface de TODOS os meses
+        function refreshUI() {
+            timeline.forEach((_, idx) => {
+                renderMonthLists(idx);
+                updateStats(idx);
+            });
+            renderTabs(); // Para atualizar os badges de pendência nas abas
+        }
+
         function createInitialTimeline() {
             let startIdx = new Date().getMonth();
             timeline = [];
@@ -214,8 +224,9 @@
             const container = document.getElementById('month-tabs-container');
             container.innerHTML = timeline.map((m, i) => {
                 const unpaid = [...m.data.fixedExpenses, ...m.data.variableExpenses].filter(e => !e.isPaid).length;
+                const activeClass = i === activeIndex ? 'active-month-tab' : '';
                 return `
-                <button onclick="selecionarMes(${i})" id="tab-${i}" class="month-tab">
+                <button onclick="selecionarMes(${i})" id="tab-${i}" class="month-tab ${activeClass}">
                     ${m.label} ${unpaid > 0 ? `<span class="ml-1 bg-red-500 text-[10px] text-white px-1.5 py-0.5 rounded-full">${unpaid}</span>` : ''}
                 </button>`
             }).join('');
@@ -292,7 +303,6 @@
             renderItemList(mIdx, 'income', timeline[mIdx].data.incomeEntries);
             renderItemList(mIdx, 'fixed', timeline[mIdx].data.fixedExpenses);
             renderItemList(mIdx, 'variable', timeline[mIdx].data.variableExpenses);
-            updateStats(mIdx);
         }
 
         function renderItemList(mIdx, type, items) {
@@ -311,7 +321,6 @@
                     ${!item.isSystem ? `<div onclick="removeItem(${mIdx},'${type}','${item.id}')" class="btn-remove" title="Remover"><i data-lucide="x" class="w-4 h-4"></i></div>` : ''}
                     <input type="text" value="${item.name}" class="main-text bg-transparent border-none text-sm font-bold w-full focus:ring-0 truncate mb-2 mt-1" onchange="updateProp(${mIdx},'${type}','${item.id}','name',this.value)" ${item.isSystem?'readonly':''}>
                     <div class="flex items-center gap-2">
-                        <!-- DATA AGORA EDITÁVEL PARA SALDO ANTERIOR -->
                         <input type="date" value="${item.date||''}" class="input-field text-[10px] p-1 h-9 w-28" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)">
                         <div class="flex-grow">${inputVal}</div>
                         ${item.isPaid!==undefined && !item.isSystem ? `<label class="toggle-switch"><input type="checkbox" ${isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`: (item.isSystem ? '<div class="w-[42px]"></div>' : '')}
@@ -320,27 +329,45 @@
             lucide.createIcons();
         }
 
-        // --- LÓGICA ---
+        // --- LÓGICA CORE ---
         function updateProp(mIdx,type,id,p,v) { 
             const i = getL(mIdx,type).find(x=>x.id==id); 
-            if(i){ i[p]=(p==='hours'?parseFloat(v):v); saveData(); propagateBalances(); timeline.forEach((_, idx) => updateStats(idx)); renderMonthLists(mIdx); }
+            if(i){ 
+                i[p]=(p==='hours'?parseFloat(v):v); 
+                saveData(); 
+                propagateBalances(); 
+                refreshUI(); // Atualiza tudo
+            }
         }
         function updateValue(mIdx,type,id,v) {
             const i = getL(mIdx,type).find(x=>x.id==id);
-            if(i){ i.value=parseFloat(v)||0; saveData(); propagateBalances(); timeline.forEach((_, idx) => updateStats(idx)); renderMonthLists(mIdx); }
+            if(i){ 
+                i.value=parseFloat(v)||0; 
+                saveData(); 
+                propagateBalances(); 
+                refreshUI(); // Atualiza tudo
+            }
         }
         function togglePaid(mIdx,type,id) {
             const i = getL(mIdx,type).find(x=>x.id==id);
-            if(i){ i.isPaid=!i.isPaid; saveData(); updateStats(mIdx); renderMonthLists(mIdx); renderTabs(); }
+            if(i){ 
+                i.isPaid=!i.isPaid; 
+                saveData(); 
+                refreshUI(); // Atualiza badges e progressos
+            }
         }
         function addItem(mIdx,type) {
             getL(mIdx,type).push({ id: Math.random(), name: 'Novo Item', value: 0, date: new Date().toISOString().slice(0,10), isPaid: false });
-            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
+            saveData(); 
+            propagateBalances(); 
+            refreshUI();
         }
         function removeItem(mIdx,type,id) {
-            customConfirm("Excluir item?", "Remover definitivamente da lista?", () => {
+            customConfirm("Excluir item?", "Deseja remover este item definitivamente?", () => {
                 timeline[mIdx].data[type==='income'?'incomeEntries':(type==='fixed'?'fixedExpenses':'variableExpenses')] = getL(mIdx,type).filter(x=>x.id!=id);
-                saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
+                saveData(); 
+                propagateBalances(); 
+                refreshUI();
             });
         }
         function getL(mIdx,type) { 
@@ -358,7 +385,9 @@
             } else {
                 timeline[mIdx].data[key] = clean;
             }
-            saveData(); propagateBalances(); renderMonthLists(mIdx); renderTabs();
+            saveData(); 
+            propagateBalances(); 
+            refreshUI();
         }
 
         function propagateBalances() {
@@ -391,10 +420,10 @@
                 elBal.className = `text-lg font-black ${bal>=0?'text-blue-400':'text-red-400'}`;
             }
 
-            document.getElementById(`det-fix-${mIdx}`).textContent = formatBRL(fixT);
-            document.getElementById(`det-var-${mIdx}`).textContent = formatBRL(varT);
-            document.getElementById(`det-pend-${mIdx}`).textContent = formatBRL(totalT - totalP);
-            document.getElementById(`det-tot-${mIdx}`).textContent = formatBRL(totalT);
+            const detFix = document.getElementById(`det-fix-${mIdx}`); if(detFix) detFix.textContent = formatBRL(fixT);
+            const detVar = document.getElementById(`det-var-${mIdx}`); if(detVar) detVar.textContent = formatBRL(varT);
+            const detPend = document.getElementById(`det-pend-${mIdx}`); if(detPend) detPend.textContent = formatBRL(totalT - totalP);
+            const detTot = document.getElementById(`det-tot-${mIdx}`); if(detTot) detTot.textContent = formatBRL(totalT);
 
             const prog = totalT > 0 ? (totalP / totalT * 100).toFixed(0) : 0;
             const elBar = document.getElementById(`prog-paid-${mIdx}`); if(elBar) elBar.style.width = prog + '%';
@@ -406,15 +435,17 @@
             activeIndex = idx;
             document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.add('hidden-month'));
             const c = document.getElementById(`container-${idx}`); if(c) c.classList.remove('hidden-month');
-            document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active-month-tab'));
-            const t = document.getElementById(`tab-${idx}`); if(t) t.classList.add('active-month-tab');
+            refreshUI(); // Garante que as abas e badges estão sincronizados ao trocar
         }
 
         function addNewMonthManual() {
             const last = timeline[timeline.length - 1].label;
             const nextIdx = (MONTH_NAMES.indexOf(last) + 1) % 12;
             timeline.push({ label: MONTH_NAMES[nextIdx], data: createEmptyMonthData() });
-            propagateBalances(); saveData(); renderAll(); selecionarMes(timeline.length - 1);
+            propagateBalances(); 
+            saveData(); 
+            renderMonths(); 
+            selecionarMes(timeline.length - 1);
         }
 
         function advanceTimeline() {
@@ -426,7 +457,9 @@
                     const nextIdx = (MONTH_NAMES.indexOf(last) + 1) % 12;
                     timeline.push({ label: MONTH_NAMES[nextIdx], data: createEmptyMonthData() });
                 }
-                saveData(); propagateBalances(); location.reload();
+                saveData(); 
+                propagateBalances(); 
+                location.reload();
             });
         }
 
@@ -442,11 +475,9 @@
                 ...m.data.fixedExpenses.map(i => ({ ...i, val: -i.value, type:'OUT' })),
                 ...m.data.variableExpenses.map(i => ({ ...i, val: -i.value, type:'OUT' }))
             ].sort((a,b) => {
-                // Ordenação cronológica
                 const dateA = new Date(a.date || '9999-12-31');
                 const dateB = new Date(b.date || '9999-12-31');
                 if (dateA - dateB !== 0) return dateA - dateB;
-                // Se for a mesma data, Entradas (IN) vêm antes de Saídas (OUT)
                 return a.type === 'IN' ? -1 : 1;
             });
             
@@ -510,7 +541,7 @@
             globalChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Entradas', data: incs, backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Custos Planejados', data: exps, backgroundColor: '#ef4444', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#334155' } }, x: { grid: { display: false } } }, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#f1f5f9' } } } }
             });
         }
 
@@ -527,3 +558,4 @@
     </script>
 </body>
 </html>
+
