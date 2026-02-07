@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <title id="page-title">Finanças Pro v31</title>
+    <title id="page-title">Finanças Pro v32</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -20,7 +20,6 @@
         .input-field { background-color: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.6rem 0.8rem; width: 100%; transition: all 0.2s; font-size: 0.875rem; }
         .input-field:focus { border-color: #3b82f6; outline: none; ring: 2px; ring-color: #3b82f6; }
         
-        /* CORES DE STATUS */
         .item-row { transition: all 0.2s ease; border-width: 2px; border-style: solid; position: relative; }
         .item-paid { background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3) !important; }
         .item-paid .main-text, .item-paid input { color: #10b981 !important; }
@@ -84,10 +83,10 @@
             </div>
         </header>
 
-        <!-- Navegação de Meses -->
+        <!-- Navegação -->
         <div class="flex items-center border-b border-slate-700 mb-8 overflow-hidden bg-slate-900/30 rounded-t-lg">
             <div class="flex overflow-x-auto no-scrollbar flex-grow" id="month-tabs-container"></div>
-            <div onclick="addNewMonthManual()" class="px-4 text-slate-400 hover:text-blue-500 cursor-pointer border-l border-slate-700" title="Novo Mês">
+            <div onclick="addNewMonthManual()" class="px-4 text-slate-400 hover:text-blue-500 cursor-pointer border-l border-slate-700">
                 <i data-lucide="plus-circle" class="w-6 h-6"></i>
             </div>
         </div>
@@ -101,12 +100,12 @@
         </footer>
     </div>
 
-    <!-- Botão de Gráfico Flutuante -->
+    <!-- Floating Chart -->
     <div class="fab" onclick="openChartModal()">
         <i data-lucide="bar-chart-3"></i>
     </div>
 
-    <!-- MODAL GESTÃO GLOBAL (FIXADO) -->
+    <!-- MODAL GESTÃO GLOBAL -->
     <div id="global-tool-modal" class="modal-overlay">
         <div class="card w-full max-w-lg">
             <div class="flex justify-between items-center mb-6">
@@ -115,9 +114,8 @@
             </div>
             
             <div class="space-y-6">
-                <!-- Adicionar em Massa -->
                 <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-                    <h3 class="text-xs font-bold mb-4 text-slate-400 uppercase tracking-widest">Adicionar item em todos os meses</h3>
+                    <h3 class="text-xs font-bold mb-4 text-slate-400 uppercase tracking-widest">Adicionar em todos os meses</h3>
                     <div class="grid grid-cols-2 gap-3 mb-3">
                         <input type="text" id="global-name" placeholder="Ex: Spotify" class="input-field">
                         <input type="number" id="global-value" placeholder="Valor" class="input-field">
@@ -130,13 +128,12 @@
                         </select>
                         <input type="date" id="global-date" class="input-field">
                     </div>
-                    <button id="btn-apply-global" onclick="applyGlobalItem()" class="btn btn-primary w-full py-3 font-bold uppercase transition-all active:scale-95">Aplicar em Tudo</button>
-                    <p id="global-status-msg" class="text-[10px] text-blue-400 mt-2 text-center hidden font-bold">Processado com sucesso!</p>
+                    <button onclick="applyGlobalItem()" class="btn btn-primary w-full py-3 font-bold uppercase shadow-lg shadow-blue-500/20">Aplicar em Toda a Linha do Tempo</button>
+                    <p id="global-status-msg" class="text-[10px] text-blue-400 mt-2 text-center hidden font-bold">Lançamento concluído!</p>
                 </div>
 
-                <!-- Remover em Massa -->
                 <div class="p-4 bg-red-500/5 rounded-xl border border-red-500/20">
-                    <h3 class="text-xs font-bold mb-4 text-red-400 uppercase tracking-widest">Remover de todos os meses</h3>
+                    <h3 class="text-xs font-bold mb-4 text-red-400 uppercase tracking-widest">Remover em massa</h3>
                     <div class="flex gap-2">
                         <input type="text" id="global-remove-name" placeholder="Nome exato do item" class="input-field">
                         <button onclick="removeGlobalItem()" class="btn bg-red-600 hover:bg-red-700 text-white"><i data-lucide="trash-2"></i></button>
@@ -146,23 +143,23 @@
         </div>
     </div>
 
-    <!-- Modais Auxiliares -->
+    <!-- Modais Padrão -->
     <div id="chart-modal-overlay" class="modal-overlay">
         <div class="card w-full max-w-4xl"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="line-chart"></i> Evolução Financeira</h2><button onclick="closeModal('chart-modal-overlay')"><i data-lucide="x"></i></button></div><div class="h-[50vh]"><canvas id="globalChart"></canvas></div></div>
     </div>
     <div id="cashflow-modal-overlay" class="modal-overlay">
-        <div class="card w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="cashflow-title">Fluxo Cronológico</h2><button onclick="closeModal('cashflow-modal-overlay')"><i data-lucide="x"></i></button></div><div class="overflow-y-auto pr-2 no-scrollbar" id="cashflow-content"></div></div>
+        <div class="card w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="cashflow-title">Fluxo de Caixa</h2><button onclick="closeModal('cashflow-modal-overlay')"><i data-lucide="x"></i></button></div><div class="overflow-y-auto pr-2 no-scrollbar" id="cashflow-content"></div></div>
     </div>
     <div id="backup-modal-overlay" class="modal-overlay">
-        <div class="card w-full max-w-md text-center"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold"><i data-lucide="settings"></i> Dados</h2><button onclick="closeModal('backup-modal-overlay')"><i data-lucide="x"></i></button></div><div class="space-y-4"><p class="text-xs text-slate-400">Os dados são locais. Use o backup para mover entre aparelhos.</p><button onclick="downloadBackup()" class="btn btn-primary w-full">Salvar Backup</button><input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)"><button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full">Carregar Backup</button></div></div>
+        <div class="card w-full max-w-md text-center"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold"><i data-lucide="settings"></i> Dados</h2><button onclick="closeModal('backup-modal-overlay')"><i data-lucide="x"></i></button></div><div class="space-y-4"><p class="text-xs text-slate-400">Os dados são locais. Faça backup regularmente.</p><button onclick="downloadBackup()" class="btn btn-primary w-full">Salvar Arquivo</button><input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)"><button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full">Carregar Arquivo</button></div></div>
     </div>
     <div id="confirm-modal-overlay" class="modal-overlay">
-        <div class="card w-full max-w-sm text-center"><h3 class="text-xl font-bold mb-4" id="confirm-title">Atenção</h3><p class="text-slate-400 mb-6" id="confirm-body"></p><div class="flex justify-center gap-4"><button id="confirm-btn-yes" class="btn btn-primary px-8">Sim</button><button onclick="closeModal('confirm-modal-overlay')" class="btn btn-secondary px-8">Não</button></div></div>
+        <div class="card w-full max-w-sm text-center"><h3 class="text-xl font-bold mb-4" id="confirm-title">Atenção</h3><p class="text-slate-400 mb-6" id="confirm-body"></p><div class="flex justify-center gap-4"><button id="confirm-btn-yes" class="btn btn-primary px-8">Confirmar</button><button onclick="closeModal('confirm-modal-overlay')" class="btn btn-secondary px-8">Cancelar</button></div></div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'financialData_Final_Production_v31_stable';
-        const TITLE_KEY = 'financialApp_Title_Production_v31';
+        const STORAGE_KEY = 'financialData_Production_v32_final';
+        const TITLE_KEY = 'financialApp_Title_v32';
         const HORA_EXTRA_RATE = 21;
         const MONTH_NAMES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         
@@ -173,14 +170,45 @@
         function initApp() {
             const savedTitle = localStorage.getItem(TITLE_KEY);
             if (savedTitle) { document.getElementById('app-display-title').innerText = savedTitle; }
-            const saved = localStorage.getItem(STORAGE_KEY);
+            
+            // Tenta carregar dados da chave estável ou migrar de versões v31
+            let saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) saved = localStorage.getItem('financialData_Final_Production_v31_stable');
+            
             if (saved) {
                 timeline = JSON.parse(saved);
+                migrateDataFormat(); // Garante que backups antigos funcionem
             } else {
                 createInitialTimeline();
             }
             renderAll();
             selecionarMes(0);
+        }
+
+        // FUNÇÃO DE MIGRAÇÃO: Corrige anos ausentes no carregamento
+        function migrateDataFormat() {
+            let now = new Date();
+            let currentYear = now.getFullYear();
+            let currentMonth = now.getMonth();
+
+            timeline.forEach((m, i) => {
+                // Se o ano estiver faltando ou indefinido
+                if (!m.year || m.year === "undefined") {
+                    // Tenta adivinhar o ano baseado na posição
+                    let offset = i - 0; // Assume que o primeiro mês é o atual
+                    let mIdx = (currentMonth + offset) % 12;
+                    let yOff = Math.floor((currentMonth + offset) / 12);
+                    m.year = currentYear + yOff;
+                }
+                
+                // Garante data no saldo anterior
+                let sys = m.data.incomeEntries.find(x => x.isSystem);
+                if (sys && (!sys.date || sys.date === "")) {
+                    const mIdx = MONTH_NAMES.indexOf(m.label);
+                    sys.date = new Date(m.year, mIdx, 1).toISOString().slice(0, 10);
+                }
+            });
+            saveData();
         }
 
         function saveData() {
@@ -191,10 +219,7 @@
         }
 
         function refreshUI() {
-            timeline.forEach((_, idx) => {
-                renderMonthLists(idx);
-                updateStats(idx);
-            });
+            timeline.forEach((_, idx) => { renderMonthLists(idx); updateStats(idx); });
             renderTabs();
         }
 
@@ -220,15 +245,10 @@
             };
         }
 
-        function renderAll() { 
-            renderTabs(); 
-            renderMonths(); 
-            lucide.createIcons(); 
-        }
+        function renderAll() { renderTabs(); renderMonths(); lucide.createIcons(); }
 
         function renderTabs() {
             const container = document.getElementById('month-tabs-container');
-            if (!container) return;
             container.innerHTML = timeline.map((m, i) => {
                 const unpaid = [...m.data.fixedExpenses, ...m.data.variableExpenses].filter(e => !e.isPaid).length;
                 const activeClass = i === activeIndex ? 'active-month-tab' : '';
@@ -239,7 +259,6 @@
         function renderMonths() {
             const container = document.getElementById('planilhas-container');
             container.innerHTML = '';
-            
             timeline.forEach((m, i) => {
                 const div = document.createElement('div');
                 div.id = `container-${i}`;
@@ -249,12 +268,12 @@
                         <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                             <div class="flex-grow w-full text-left">
                                 <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3"> Resumo: ${m.label} ${m.year}</h4>
-                                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                                <div class="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
                                     <div id="prog-paid-${i}" class="bg-green-500 h-full transition-all duration-700" style="width: 0%"></div>
                                 </div>
                                 <div class="flex justify-between items-center mt-2">
                                     <span class="text-xs text-slate-500 font-bold" id="txt-prog-${i}">0% concluído</span>
-                                    <button onclick="showCashFlow(${i})" class="text-xs text-blue-400 hover:text-white flex items-center gap-1 transition-colors"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Analisar Fluxo</button>
+                                    <button onclick="showCashFlow(${i})" class="text-xs text-blue-400 hover:text-white flex items-center gap-1 transition-colors"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Detalhes do Fluxo</button>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
@@ -271,9 +290,21 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="card border-l-4 border-green-500 h-fit"><div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold text-green-400 flex items-center gap-2"><i data-lucide="wallet"></i> Entradas</h3><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'income')"></i></div><div id="list-income-${i}" class="space-y-3"></div><button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Entrada</button></div>
-                        <div class="card border-l-4 border-blue-500 h-fit"><div class="flex justify-between items-center mb-6"><h4 class="text-lg font-bold text-blue-400 flex items-center gap-2"><i data-lucide="lock"></i> Fixas</h4><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'fixed')"></i></div><div id="list-fixed-${i}" class="space-y-3"></div><button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Fixa</button></div>
-                        <div class="card border-l-4 border-orange-500 h-fit"><div class="flex justify-between items-center mb-6"><h4 class="text-lg font-bold text-orange-400 flex items-center gap-2"><i data-lucide="shopping-bag"></i> Variáveis</h4><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'variable')"></i></div><div id="list-variable-${i}" class="space-y-3"></div><button onclick="addItem(${i}, 'variable')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Variável</button></div>
+                        <div class="card border-l-4 border-green-500 h-fit">
+                            <div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold text-green-400 flex items-center gap-2"><i data-lucide="wallet"></i> Entradas</h3><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'income')"></i></div>
+                            <div id="list-income-${i}" class="space-y-3"></div>
+                            <button onclick="addItem(${i}, 'income')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Entrada</button>
+                        </div>
+                        <div class="card border-l-4 border-blue-500 h-fit">
+                            <div class="flex justify-between items-center mb-6"><h4 class="text-lg font-bold text-blue-400 flex items-center gap-2"><i data-lucide="lock"></i> Fixas</h4><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'fixed')"></i></div>
+                            <div id="list-fixed-${i}" class="space-y-3"></div>
+                            <button onclick="addItem(${i}, 'fixed')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Fixa</button>
+                        </div>
+                        <div class="card border-l-4 border-orange-500 h-fit">
+                            <div class="flex justify-between items-center mb-6"><h4 class="text-lg font-bold text-orange-400 flex items-center gap-2"><i data-lucide="shopping-bag"></i> Variáveis</h4><i data-lucide="copy" class="w-4 h-4 text-slate-500 cursor-pointer" onclick="copyPrev(${i},'variable')"></i></div>
+                            <div id="list-variable-${i}" class="space-y-3"></div>
+                            <button onclick="addItem(${i}, 'variable')" class="btn btn-secondary btn-sm w-full mt-6">+ Nova Variável</button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -299,7 +330,7 @@
                     inputVal = `<div class="flex gap-1"><input type="number" value="${item.hours || 0}" class="input-field text-xs w-12" onchange="updateProp(${mIdx},'income','${item.id}','hours',this.value)"><div class="input-field text-xs bg-slate-800 flex items-center justify-center font-bold min-w-[75px]">R$ ${tot.toFixed(2)}</div></div>`;
                 }
                 const showSync = findOccurrences(item.name).length > 1 && !item.isSystem;
-                return `<div class="p-3 rounded-lg item-row ${statusClass}">${!item.isSystem ? `<div onclick="removeItem(${mIdx},'${type}','${item.id}')" class="btn-remove"><i data-lucide="x" class="w-4 h-4"></i></div>` : ''}${showSync ? `<div onclick="syncItemValue('${item.name}', ${item.value}, '${type}')" class="btn-sync"><i data-lucide="refresh-cw" class="w-4 h-4"></i></div>` : ''}<input type="text" value="${item.name}" class="main-text bg-transparent border-none text-sm font-bold w-full focus:ring-0 mb-2 mt-1" onchange="updateProp(${mIdx},'${type}','${item.id}','name',this.value)" ${item.isSystem?'readonly':''}><div class="flex items-center gap-2"><input type="date" value="${item.date||''}" class="input-field text-[10px] p-1 h-9 w-28" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)"><div class="flex-grow">${inputVal}</div>${item.isPaid!==undefined && !item.isSystem ? `<label class="toggle-switch"><input type="checkbox" ${isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`: (item.isSystem ? '<div class="w-[42px]"></div>' : '')}</div></div>`}).join('');
+                return `<div class="p-3 rounded-lg item-row ${statusClass}">${!item.isSystem ? `<div onclick="removeItem(${mIdx},'${type}','${item.id}')" class="btn-remove" title="Remover"><i data-lucide="x" class="w-4 h-4"></i></div>` : ''}${showSync ? `<div onclick="syncItemValue('${item.name}', ${item.value}, '${type}')" class="btn-sync" title="Aplicar valor em tudo"><i data-lucide="refresh-cw" class="w-4 h-4"></i></div>` : ''}<input type="text" value="${item.name}" class="main-text bg-transparent border-none text-sm font-bold w-full focus:ring-0 mb-2 mt-1" onchange="updateProp(${mIdx},'${type}','${item.id}','name',this.value)" ${item.isSystem?'readonly':''}><div class="flex items-center gap-2"><input type="date" value="${item.date||''}" class="input-field text-[10px] p-1 h-9 w-28" onchange="updateProp(${mIdx},'${type}','${item.id}','date',this.value)"><div class="flex-grow">${inputVal}</div>${item.isPaid!==undefined && !item.isSystem ? `<label class="toggle-switch"><input type="checkbox" ${isPaid?'checked':''} onchange="togglePaid(${mIdx},'${type}','${item.id}')"><span class="slider"></span></label>`: (item.isSystem ? '<div class="w-[42px]"></div>' : '')}</div></div>`}).join('');
             lucide.createIcons();
         }
 
@@ -308,7 +339,7 @@
         function updateValue(mIdx,type,id,v) { const i = getL(mIdx,type).find(x=>x.id==id); if(i){ i.value=parseFloat(v)||0; saveData(); propagateBalances(); refreshUI(); } }
         function togglePaid(mIdx,type,id) { const i = getL(mIdx,type).find(x=>x.id==id); if(i){ i.isPaid=!i.isPaid; saveData(); refreshUI(); } }
         function addItem(mIdx,type) { getL(mIdx,type).push({ id: Math.random(), name: 'Novo Item', value: 0, date: new Date().toISOString().slice(0,10), isPaid: false }); saveData(); propagateBalances(); refreshUI(); }
-        function removeItem(mIdx,type,id) { customConfirm("Remover?", "Apagar este item?", () => { const key = type==='income'?'incomeEntries':(type==='fixed'?'fixedExpenses':'variableExpenses'); timeline[mIdx].data[key] = getL(mIdx,type).filter(x=>x.id!=id); saveData(); propagateBalances(); refreshUI(); }); }
+        function removeItem(mIdx,type,id) { customConfirm("Excluir item?", "Remover definitivamente?", () => { const key = type==='income'?'incomeEntries':(type==='fixed'?'fixedExpenses':'variableExpenses'); timeline[mIdx].data[key] = getL(mIdx,type).filter(x=>x.id!=id); saveData(); propagateBalances(); refreshUI(); }); }
         function getL(mIdx,type) { const d = timeline[mIdx].data; return type==='income'?d.incomeEntries:(type==='fixed'?d.fixedExpenses:d.variableExpenses); }
 
         function copyPrev(mIdx, type) {
@@ -341,31 +372,27 @@
             const elInc = document.getElementById(`stat-inc-${mIdx}`); if(elInc) elInc.textContent = formatBRL(inc);
             const elBal = document.getElementById(`stat-bal-${mIdx}`);
             if(elBal) { const bal = inc - tT; elBal.textContent = formatBRL(bal); elBal.className = `text-lg font-black ${bal>=0?'text-blue-400':'text-red-400'}`; }
-            const dfix = document.getElementById(`det-fix-${mIdx}`); if(dfix) dfix.textContent = formatBRL(fixT);
-            const dvar = document.getElementById(`det-var-${mIdx}`); if(dvar) dvar.textContent = formatBRL(varT);
-            const dpen = document.getElementById(`det-pend-${mIdx}`); if(dpen) dpen.textContent = formatBRL(tT - tP);
-            const dtot = document.getElementById(`det-tot-${mIdx}`); if(dtot) dtot.textContent = formatBRL(tT);
+            document.getElementById(`det-fix-${mIdx}`).textContent = formatBRL(fixT);
+            document.getElementById(`det-var-${mIdx}`).textContent = formatBRL(varT);
+            document.getElementById(`det-pend-${mIdx}`).textContent = formatBRL(tT - tP);
+            document.getElementById(`det-tot-${mIdx}`).textContent = formatBRL(tT);
             const prog = tT > 0 ? (tP / tT * 100).toFixed(0) : 0;
             const elBar = document.getElementById(`prog-paid-${mIdx}`); if(elBar) elBar.style.width = prog + '%';
             const elTxt = document.getElementById(`txt-prog-${mIdx}`); if(elTxt) elTxt.textContent = prog + '% concluído';
         }
 
-        // --- GESTÃO GLOBAL (FIXADA) ---
+        // --- GESTÃO GLOBAL ---
         function applyGlobalItem() {
             const nameEl = document.getElementById('global-name');
             const valEl = document.getElementById('global-value');
             const typeEl = document.getElementById('global-type');
             const dateEl = document.getElementById('global-date');
-            
-            if(!nameEl.value || !dateEl.value) {
-                alert("Preencha o Nome e a Data para continuar.");
-                return;
-            }
+            if(!nameEl.value || !dateEl.value) { alert("Nome e Data são obrigatórios!"); return; }
 
+            const targetDay = new Date(dateEl.value + 'T00:00:00').getDate();
             const name = nameEl.value;
             const value = parseFloat(valEl.value) || 0;
             const type = typeEl.value;
-            const targetDay = new Date(dateEl.value + 'T00:00:00').getDate();
 
             timeline.forEach(m => {
                 const list = type==='income'?m.data.incomeEntries:(type==='fixed'?m.data.fixedExpenses:m.data.variableExpenses);
@@ -377,27 +404,21 @@
             });
 
             saveData(); propagateBalances(); refreshUI();
-            
-            // Feedback Visual
-            const msg = document.getElementById('global-status-msg');
-            msg.classList.remove('hidden');
-            setTimeout(() => { 
-                msg.classList.add('hidden');
-                closeModal('global-tool-modal'); 
-                nameEl.value = ''; valEl.value = '';
-            }, 1000);
+            document.getElementById('global-status-msg').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('global-status-msg').classList.add('hidden'); closeModal('global-tool-modal'); nameEl.value = ''; valEl.value = ''; }, 1000);
         }
 
         function removeGlobalItem() {
             const name = document.getElementById('global-remove-name').value;
             if(!name) return;
-            customConfirm("Apagar?", `Remover "${name}" de todos os meses?`, () => {
+            customConfirm("Remover tudo?", `Apagar "${name}" de todos os meses?`, () => {
                 timeline.forEach(m => {
                     m.data.incomeEntries = m.data.incomeEntries.filter(x => x.name !== name);
                     m.data.fixedExpenses = m.data.fixedExpenses.filter(x => x.name !== name);
                     m.data.variableExpenses = m.data.variableExpenses.filter(x => x.name !== name);
                 });
                 saveData(); propagateBalances(); refreshUI(); closeModal('global-tool-modal');
+                document.getElementById('global-remove-name').value = '';
             });
         }
 
@@ -426,15 +447,23 @@
             refreshUI();
         }
         function addNewMonthManual() { const last = timeline[timeline.length - 1]; let nextMIdx = (MONTH_NAMES.indexOf(last.label) + 1) % 12; let nextYear = nextMIdx === 0 ? last.year + 1 : last.year; timeline.push({ label: MONTH_NAMES[nextMIdx], year: nextYear, data: createEmptyMonthData(nextMIdx, nextYear) }); propagateBalances(); saveData(); renderMonths(); selecionarMes(timeline.length - 1); }
-        function advanceTimeline() { customConfirm("Encerrar?", "Remover primeiro mês da lista?", () => { timeline.shift(); if(timeline.length < 1) createInitialTimeline(); else { const last = timeline[timeline.length - 1]; let nextMIdx = (MONTH_NAMES.indexOf(last.label) + 1) % 12; let nextYear = nextMIdx === 0 ? last.year + 1 : last.year; timeline.push({ label: MONTH_NAMES[nextMIdx], year: nextYear, data: createEmptyMonthData(nextMIdx, nextYear) }); } saveData(); propagateBalances(); location.reload(); }); }
-        function editAppTitle() { const n = prompt("Nome da folha:", "Finanças Pro"); if(n){ document.getElementById('app-display-title').innerText = n; localStorage.setItem(TITLE_KEY, n); } }
+        function advanceTimeline() { customConfirm("Encerrar?", "Remover o primeiro mês da linha?", () => { timeline.shift(); if(timeline.length < 1) createInitialTimeline(); else { const last = timeline[timeline.length - 1]; let nextMIdx = (MONTH_NAMES.indexOf(last.label) + 1) % 12; let nextYear = nextMIdx === 0 ? last.year + 1 : last.year; timeline.push({ label: MONTH_NAMES[nextMIdx], year: nextYear, data: createEmptyMonthData(nextMIdx, nextYear) }); } saveData(); propagateBalances(); location.reload(); }); }
+        function editAppTitle() { const n = prompt("Novo nome:", "Finanças Pro"); if(n){ document.getElementById('app-display-title').innerText = n; localStorage.setItem(TITLE_KEY, n); } }
         function openModal(id) { document.getElementById(id).style.display='flex'; lucide.createIcons(); }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function openChartModal() { openModal('chart-modal-overlay'); setTimeout(updateChart, 100); }
         function customConfirm(t, b, cb) { document.getElementById('confirm-title').innerText = t; document.getElementById('confirm-body').innerText = b; const btn = document.getElementById('confirm-btn-yes'); btn.onclick = () => { closeModal('confirm-modal-overlay'); cb(); }; openModal('confirm-modal-overlay'); }
         function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
         function downloadBackup() { const b = new Blob([JSON.stringify(timeline)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup_financas.json`; a.click(); }
-        function handleImport(input) { const r = new FileReader(); r.onload = e => { timeline = JSON.parse(e.target.result); saveData(); location.reload(); }; r.readAsText(input.files[0]); }
+        function handleImport(input) { 
+            const r = new FileReader(); 
+            r.onload = e => { 
+                timeline = JSON.parse(e.target.result); 
+                migrateDataFormat(); // CONSERTA O BACKUP NA HORA
+                location.reload(); 
+            };
+            r.readAsText(input.files[0]); 
+        }
         function showCashFlow(idx) {
             const m = timeline[idx];
             const entries = [...m.data.incomeEntries.map(i => ({ ...i, val: i.isCalculated?i.hours*i.rate:i.value, type:'IN' })), ...m.data.fixedExpenses.map(i => ({ ...i, val: -i.value, type:'OUT' })), ...m.data.variableExpenses.map(i => ({ ...i, val: -i.value, type:'OUT' }))].sort((a,b) => { const dA = new Date(a.date || '9999-12-31'); const dB = new Date(b.date || '9999-12-31'); if (dA - dB !== 0) return dA - dB; return a.type === 'IN' ? -1 : 1; });
@@ -448,7 +477,7 @@
             const incs = timeline.map(m=>m.data.incomeEntries.reduce((s, x) => s + (x.isCalculated ? (x.hours * x.rate) : (x.value || 0)), 0));
             const exps = timeline.map(m=>m.data.fixedExpenses.reduce((s, x) => s + (x.value || 0), 0) + m.data.variableExpenses.reduce((s, x) => s + (x.value || 0), 0));
             if(globalChart) globalChart.destroy();
-            globalChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Renda', data: incs, backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Saídas', data: exps, backgroundColor: '#ef4444', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#f1f5f9' } } } } });
+            globalChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Renda', data: incs, backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Custos', data: exps, backgroundColor: '#ef4444', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#f1f5f9' } } } } });
         }
         function exportCurrentMonthCSV() { const m = timeline[activeIndex]; let csv = "Tipo;Data;Descricao;Valor;Status\n"; const add = (t, l) => l.forEach(i => csv += `${t};${i.date || ''};${i.name};${i.isCalculated ? i.hours*i.rate : i.value};${i.isPaid === false ? 'Pendente' : 'Pago'}\n`); add('Entrada', m.data.incomeEntries); add('Fixa', m.data.fixedExpenses); add('Variavel', m.data.variableExpenses); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); a.download = `planilha_${m.label.toLowerCase()}.csv`; a.click(); }
         document.addEventListener('DOMContentLoaded', initApp);
