@@ -20,7 +20,7 @@
         .card { background-color: #1e293b; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); padding: 1.25rem; border: 1px solid #334155; }
         
         /* Itens de lista */
-        .item-row { transition: all 0.2s ease; border-width: 2px; border-style: solid; border-radius: 1.25rem; position: relative; background-color: #1e293b; }
+        .item-row { transition: all 0.2s ease; border-width: 2px; border-style: solid; border-radius: 1.25rem; position: relative; background-color: #1e293b; margin-bottom: 0.75rem; }
         .item-paid { background-color: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.3) !important; }
         .item-paid .main-text, .item-paid input { color: #10b981 !important; }
         .item-unpaid { background-color: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.3) !important; }
@@ -29,7 +29,7 @@
         .input-field { background-color: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 0.75rem; padding: 0.5rem 0.75rem; width: 100%; transition: all 0.2s; font-size: 0.85rem; }
         .input-field:focus { border-color: #3b82f6; outline: none; }
 
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1rem; border-radius: 0.8rem; font-weight: 700; cursor: pointer; border: none; font-size: 0.8rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1rem; border-radius: 0.8rem; font-weight: 700; transition: all 0.2s; cursor: pointer; border: none; font-size: 0.8rem; }
         .btn-primary { background-color: #3b82f6; color: white; }
         .btn-secondary { background-color: #334155; color: #f1f5f9; }
         .btn-warning { background-color: #f59e0b; color: white; }
@@ -52,7 +52,7 @@
         /* Bancos Customizáveis */
         .bank-input-live { background: transparent; border: none; font-size: 1.3rem; font-weight: 900; color: #10b981; text-align: center; width: 100%; outline: none; padding: 0; }
         .bank-name-input { background: transparent; border: none; font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-align: center; width: 100%; outline: none; text-transform: uppercase; margin-bottom: 4px; }
-        .bank-tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 900; background: #0f172a; border: 1px solid #334155; cursor: pointer; min-width: 40px; text-align: center; }
+        .bank-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; font-weight: 900; background: #0f172a; border: 1px solid #334155; cursor: pointer; min-width: 40px; text-align: center; }
 
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.85); z-index: 100; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(8px); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -82,12 +82,12 @@
         <!-- Navegação de Meses -->
         <div class="flex items-center border-b border-slate-700 mb-8 overflow-hidden bg-slate-900/30 rounded-t-2xl">
             <div class="flex overflow-x-auto no-scrollbar flex-grow" id="month-tabs-container"></div>
-            <div onclick="addNewMonthManual()" class="px-4 text-slate-400 hover:text-blue-500 cursor-pointer border-l border-slate-700">
+            <div onclick="addNewMonthManual()" class="px-4 text-slate-400 hover:text-blue-500 cursor-pointer border-l border-slate-700" title="Adicionar Novo Mês">
                 <i data-lucide="plus-circle" class="w-6 h-6"></i>
             </div>
         </div>
 
-        <!-- Renderizador -->
+        <!-- Renderizador Principal -->
         <div id="planilhas-container"></div>
 
         <footer class="mt-12 border-t border-slate-700 pt-8 text-center opacity-30">
@@ -118,7 +118,7 @@
                     </select>
                     <input type="date" id="global-date" class="input-field">
                 </div>
-                <button onclick="applyGlobalItem()" class="btn btn-primary w-full py-3 font-black uppercase">Lançar em Todos os Meses</button>
+                <button onclick="applyGlobalItem()" class="btn btn-primary w-full py-3 font-black uppercase tracking-tighter">Lançar em Todos os Meses</button>
             </div>
         </div>
     </div>
@@ -133,7 +133,7 @@
         <div class="card w-full max-w-sm text-center"><div class="flex justify-between items-center mb-6"><h2>Configurações</h2><button onclick="closeModal('backup-modal-overlay')"><i data-lucide="x"></i></button></div><div class="space-y-3"><button onclick="downloadBackup()" class="btn btn-primary w-full py-3">Exportar Backup</button><input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(this)"><button onclick="document.getElementById('importFile').click()" class="btn btn-secondary w-full py-3">Importar Backup</button></div></div>
     </div>
     <div id="confirm-modal-overlay" class="modal-overlay">
-        <div class="card w-full max-w-xs text-center"><h3 class="mb-4">Deseja prosseguir?</h3><p id="confirm-body" class="text-sm text-slate-400 mb-6"></p><div class="flex justify-center gap-4"><button id="confirm-btn-yes" class="btn btn-primary px-8">Sim</button><button onclick="closeModal('confirm-modal-overlay')" class="btn btn-secondary">Não</button></div></div>
+        <div class="card w-full max-w-xs text-center"><h3 class="mb-4 font-bold uppercase">Confirmar?</h3><p id="confirm-body" class="text-sm text-slate-400 mb-6"></p><div class="flex justify-center gap-4"><button id="confirm-btn-yes" class="btn btn-primary px-8">Sim</button><button onclick="closeModal('confirm-modal-overlay')" class="btn btn-secondary">Não</button></div></div>
     </div>
 
     <script>
@@ -150,8 +150,10 @@
             if (savedTitle) { document.getElementById('app-display-title').innerText = savedTitle; }
             
             let saved = localStorage.getItem(STORAGE_KEY);
+            // Busca dados de todas as chaves possíveis para evitar perda
             if (!saved) saved = localStorage.getItem('financialData_Classic_v40_wallet');
             if (!saved) saved = localStorage.getItem('financialData_App_v38_stable');
+            if (!saved) saved = localStorage.getItem('financialData_Stable_v36_final');
             
             if (saved) {
                 timeline = JSON.parse(saved);
@@ -201,11 +203,14 @@
                 if (m.bank2Balance === undefined) m.bank2Balance = m.bankMP || 0;
                 
                 if (m.data) {
-                    // Garante nomes consistentes das listas
-                    if (m.data.fixedExpenses && !m.data.fixedExpensesEntries) m.data.fixedExpensesEntries = m.data.fixedExpenses;
-                    if (m.data.variableExpenses && !m.data.variableExpensesEntries) m.data.variableExpensesEntries = m.data.variableExpenses;
+                    // UNIFICAÇÃO DAS CHAVES DE DADOS (CORREÇÃO DO COCKPIT ZERADO)
+                    if (m.data.fixedExpenses && (!m.data.fixedExpensesEntries || m.data.fixedExpensesEntries.length === 0)) {
+                        m.data.fixedExpensesEntries = m.data.fixedExpenses;
+                    }
+                    if (m.data.variableExpenses && (!m.data.variableExpensesEntries || m.data.variableExpensesEntries.length === 0)) {
+                        m.data.variableExpensesEntries = m.data.variableExpenses;
+                    }
                     
-                    // Garante que as chaves de entrada existam como arrays
                     if (!m.data.incomeEntries) m.data.incomeEntries = [];
                     if (!m.data.fixedExpensesEntries) m.data.fixedExpensesEntries = [];
                     if (!m.data.variableExpensesEntries) m.data.variableExpensesEntries = [];
@@ -329,8 +334,8 @@
         function renderItemList(mIdx, type, items) {
             const container = document.getElementById(`list-${type}-${mIdx}`);
             if (!container) return;
-            const b1S = timeline[mIdx].bank1Name.substring(0,3);
-            const b2S = timeline[mIdx].bank2Name.substring(0,3);
+            const b1S = (timeline[mIdx].bank1Name || "B1").substring(0,3);
+            const b2S = (timeline[mIdx].bank2Name || "B2").substring(0,3);
 
             container.innerHTML = items.map(item => {
                 const isPaid = item.isPaid !== undefined ? item.isPaid : true;
@@ -362,8 +367,8 @@
             lucide.createIcons();
         }
 
-        // --- CORE ---
-        function selecionarMes(idx) { activeIndex = idx; renderAll(); }
+        // --- LÓGICA DE DADOS ---
+        function selecionarMes(idx) { activeIndex = idx; refreshUI(); }
         function handleWalletEdit(mIdx, field, val) { const m = timeline[mIdx]; const nV = parseFloat(val) || 0; const sK = field === 'bank1Balance' ? 'B1' : 'B2'; const sP = [...(m.data.fixedExpensesEntries||[]), ...(m.data.variableExpensesEntries||[])].filter(x => x.isPaid && x.source === sK).reduce((s, x) => s + (x.value || 0), 0); m[field] = nV + sP; saveData(); updateStats(mIdx); }
         function updateBankName(idx, field, val) { timeline[idx][field] = val.toUpperCase() || 'BANCO'; saveData(); renderAll(); }
         function updateProp(mIdx,type,id,p,v) { const i = getL(mIdx,type).find(x=>x.id==id); if(i){ i[p]=(p==='hours'?parseFloat(v):v); saveData(); propagateBalances(); refreshUI(); } }
@@ -377,10 +382,10 @@
         function propagateBalances() {
             for (let i = 0; i < timeline.length - 1; i++) {
                 const d = timeline[i].data;
-                const inc = d.incomeEntries.reduce((s, x) => s + (x.isCalculated ? (x.hours * x.rate) : (x.value || 0)), 0);
+                const inc = (d.incomeEntries||[]).reduce((s, x) => s + (x.isCalculated ? (x.hours * x.rate) : (x.value || 0)), 0);
                 const fixT = (d.fixedExpensesEntries||[]).reduce((s, x) => s + (x.value || 0), 0);
                 const varT = (d.variableExpensesEntries||[]).reduce((s, x) => s + (x.value || 0), 0);
-                let nextSys = timeline[i+1].data.incomeEntries.find(x => x.isSystem || x.name === 'Saldo Mês Anterior');
+                let nextSys = timeline[i+1].data.incomeEntries.find(x => x.isSystem);
                 if(nextSys) nextSys.value = inc - (fixT + varT);
             }
         }
@@ -413,7 +418,15 @@
             saveData(); propagateBalances(); refreshUI(); closeModal('global-tool-modal');
         }
 
-        function refreshUI() { timeline.forEach((_, idx) => { renderMonthLists(idx); updateStats(idx); }); renderTabs(); }
+        function refreshUI() { 
+            document.querySelectorAll('.planilha-mes-container').forEach(c => c.classList.remove('active-month-container'));
+            const activeC = document.getElementById(`container-${activeIndex}`);
+            if(activeC) activeC.classList.add('active-month-container');
+            
+            timeline.forEach((_, idx) => { renderMonthLists(idx); updateStats(idx); }); 
+            renderTabs(); 
+        }
+
         function openModal(id) { document.getElementById(id).style.display='flex'; lucide.createIcons(); }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
         function formatBRL(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
@@ -421,11 +434,13 @@
         function editAppTitle() { const n = prompt("Nome da Planilha:", "Finanças Pro"); if(n){ document.getElementById('app-display-title').innerText = n; localStorage.setItem(TITLE_KEY, n); saveData(); } }
         function downloadBackup() { const b = new Blob([JSON.stringify(timeline)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup_v41.json`; a.click(); }
         function handleImport(input) { const r = new FileReader(); r.onload = e => { timeline = JSON.parse(e.target.result); migrateToV41(); location.reload(); }; r.readAsText(input.files[0]); }
+        
         function showCashFlow(idx) {
             const m = timeline[idx]; const entries = [...m.data.incomeEntries.map(i => ({ ...i, val: i.isCalculated?i.hours*i.rate:i.value, type:'IN' })), ...(m.data.fixedExpensesEntries||[]).map(i => ({ ...i, val: -i.value, type:'OUT' })), ...(m.data.variableExpensesEntries||[]).map(i => ({ ...i, val: -i.value, type:'OUT' }))].sort((a,b) => { const dA = new Date(a.date || '9999-12-31'); const dB = new Date(b.date || '9999-12-31'); if (dA - dB !== 0) return dA - dB; return a.type === 'IN' ? -1 : 1; });
             let run = 0; document.getElementById('cashflow-content').innerHTML = `<table class="w-full text-left"><thead class="sticky top-0 bg-slate-800 text-[10px] uppercase text-slate-500"><tr><th class="p-3">Data</th><th>Descr.</th><th class="text-right">Valor</th></tr></thead><tbody>${entries.map(e=>{ run+=e.val; return `<tr class="border-b border-slate-700/50 text-[11px]"><td class="p-3 text-slate-500 font-mono">${e.date?new Date(e.date+'T00:00:00').toLocaleDateString('pt-BR'):'-'}</td><td class="font-bold text-slate-300">${e.name}</td><td class="text-right font-bold ${e.type==='IN'?'text-green-400':'text-red-400'}">${formatBRL(e.val)}</td></tr>`}).join('')}</tbody></table>`;
             document.getElementById('cashflow-title').innerText = `Fluxo: ${m.label}`; openModal('cashflow-modal-overlay');
         }
+
         function openChartModal() { openModal('chart-modal-overlay'); setTimeout(initChart, 100); }
         function initChart() {
             const ctx = document.getElementById('globalChart'); if(!ctx) return;
@@ -435,6 +450,7 @@
             if(globalChart) globalChart.destroy();
             globalChart = new Chart(ctx.getContext('2d'), { type: 'bar', data: { labels, datasets: [{ label: 'Renda', data: incs, backgroundColor: '#3b82f6' }, { label: 'Saídas', data: exps, backgroundColor: '#ef4444' }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
+
         function copyPrev(mIdx, type) { if (mIdx === 0) return; const k = type==='income'?'incomeEntries':(type==='fixed'?'fixedExpensesEntries':'variableExpensesEntries'); const clean = JSON.parse(JSON.stringify(timeline[mIdx-1].data[k])).filter(x=>!x.isSystem).map(x=>({...x, id:Math.random(), isPaid:false})); if(type==='income'){ const sys = timeline[mIdx].data.incomeEntries.find(x=>x.isSystem); timeline[mIdx].data.incomeEntries = [sys, ...clean]; } else { timeline[mIdx].data[k] = clean; } saveData(); propagateBalances(); refreshUI(); }
         function advanceTimeline() { customConfirm("Encerrar Mês?", "O mês mais antigo será removido da vista.", () => { timeline.shift(); if(timeline.length < 1) createInitialTimeline(); else { const last = timeline[timeline.length - 1]; let nIdx = (MONTH_NAMES.indexOf(last.label) + 1) % 12; let nYear = nIdx === 0 ? last.year + 1 : last.year; timeline.push({ label: MONTH_NAMES[nIdx], year: nYear, bank1Name: last.bank1Name, bank2Name: last.bank2Name, bank1Balance: 0, bank2Balance: 0, data: createEmptyMonthData(nIdx, nYear) }); } saveData(); propagateBalances(); location.reload(); }); }
         function addNewMonthManual() { const last = timeline[timeline.length - 1]; let nextMIdx = (MONTH_NAMES.indexOf(last.label) + 1) % 12; let nextYear = nextMIdx === 0 ? last.year + 1 : last.year; timeline.push({ label: MONTH_NAMES[nextMIdx], year: nextYear, bank1Name: last.bank1Name, bank2Name: last.bank2Name, bank1Balance: 0, bank2Balance: 0, data: createEmptyMonthData(nextMIdx, nextYear) }); propagateBalances(); activeIndex = timeline.length - 1; renderAll(); saveData(); }
